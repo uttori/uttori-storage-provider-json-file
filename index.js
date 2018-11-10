@@ -1,4 +1,4 @@
-const debug = require('debug')('Uttori.StorageProvider');
+const debug = require('debug')('Uttori.StorageProvider.JSON');
 const fs = require('fs');
 const R = require('ramda');
 const path = require('path');
@@ -82,7 +82,7 @@ class StorageProvider {
   }
 
   readObject(fileName) {
-    const filePath = path.join(this.config.data_dir, fileName, '.json');
+    const filePath = path.join(this.config.data_dir, `${fileName}.json`);
     const fileContent = this.readFile(filePath);
     if (!fileContent) {
       return null;
