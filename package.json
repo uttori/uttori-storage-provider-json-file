@@ -16,7 +16,7 @@
   "dependencies": {
     "debug": "^4.1.0",
     "ramda": "^0.25.0",
-    "uttori-document": "^1.0.1"
+    "uttori-document": "^1.1.0"
   },
   "devDependencies": {
     "ava": "1.0.0-beta.8",
@@ -47,9 +47,10 @@
     "exclude": []
   },
   "scripts": {
+    "debug": "DEBUG=Uttori* NODE_ENV=test nyc ava -s",
     "lint": "eslint .",
     "report": "nyc report --reporter=html",
-    "test": "NODE_ENV=test nyc ava",
+    "test": "NODE_ENV=test nyc ava -s",
     "validate": "npm ls"
   }
 }
