@@ -64,7 +64,7 @@ class StorageProvider {
   add(document) {
     debug('Add document:', document);
     const existing = this.get(document.slug);
-    if (!existing.createDate) {
+    if (!existing.createDate && !existing.updateDate) {
       debug('Adding document.', document);
       document.createDate = Date.now();
       document.updateDate = document.createDate;
@@ -80,7 +80,7 @@ class StorageProvider {
   update(document) {
     debug('Update document:', document.slug);
     const existing = this.get(document.slug);
-    if (existing.createDate) {
+    if (existing.createDate || existing.updateDate) {
       debug('Updating document.', document);
       document.updateDate = Date.now();
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
@@ -96,7 +96,7 @@ class StorageProvider {
   delete(slug) {
     debug('Delete document:', slug);
     const existing = this.get(slug);
-    if (existing.createDate) {
+    if (existing.createDate || existing.updateDate) {
       debug('Document found, deleting document:', slug);
       this.deleteDocument(existing);
       this.refresh();
