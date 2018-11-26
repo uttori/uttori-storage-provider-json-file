@@ -15,11 +15,13 @@
   },
   "dependencies": {
     "debug": "^4.1.0",
-    "ramda": "^0.25.0",
+    "fs-extra": "^7.0.1",
+    "ramda": "^0.26.0",
+    "sanitize-filename": "^1.6.1",
     "uttori-document": "^1.1.0"
   },
   "devDependencies": {
-    "ava": "1.0.0-beta.8",
+    "ava": "1.0.0-rc.2",
     "eslint": "^5.9.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-ava": "^5.1.1",
