@@ -134,7 +134,6 @@ test('add(slug): creates a new document with missing fields', (t) => {
   t.is(results[1].slug, document.slug);
 });
 
-
 test('add(slug): does not create a document with the same slug', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
@@ -187,10 +186,19 @@ test('update(document, originalSlug): renames the history directory if it exists
   document.updateDate = null;
   s.add(document);
   t.is(s.all().length, 2);
+
   document.title = 'second file-v2';
-  s.update('second-file', document);
+  document.content = 'second file-v2';
+  s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
+
+  document.title = 'second file-v3';
+  document.content = 'second file-v3';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 2);
+  t.is(s.all()[1].title, document.title);
+
   document.slug = 'second-file-new-directory';
   s.update(document, 'second-file');
   t.is(s.all().length, 2);
@@ -263,9 +271,16 @@ test('delete(document): does nothing when no file is found', (t) => {
   t.is(s.all().length, 2);
 });
 
-test('storeObject(fileName, object): writes the file to disk', (t) => {
+test('storeObject(fileName, object): writes the file to disk as object', (t) => {
   const s = new StorageProvider(config);
   const data = { test: true };
+  s.storeObject('test', data);
+  t.deepEqual(s.readObject('test'), data);
+});
+
+test('storeObject(fileName, object): writes the file to disk as string', (t) => {
+  const s = new StorageProvider(config);
+  const data = '{ test: true }';
   s.storeObject('test', data);
   t.deepEqual(s.readObject('test'), data);
 });
@@ -277,9 +292,9 @@ test('readObject(fileName): returns an object found by file name', (t) => {
   t.deepEqual(s.readObject('test'), data);
 });
 
-test('readObject(fileName): returns null when no content is returned', (t) => {
+test('readObject(fileName): returns undefined when no content is returned', (t) => {
   const s = new StorageProvider(config);
-  t.is(s.readObject('missing'), null);
+  t.is(s.readObject('missing'), undefined);
 });
 
 test('readFile(folder, name): returns a document found by slug', (t) => {
@@ -290,7 +305,7 @@ test('readFile(folder, name): returns a document found by slug', (t) => {
 
 test('readFile(folder, name): returns undefined when no slug is provided', (t) => {
   const s = new StorageProvider(config);
-  const result = s.readFile(config.content_dir, example.slug);
+  const result = s.readFile(config.content_dir, '');
   t.is(result, undefined);
 });
 
@@ -337,9 +352,9 @@ test('deleteFile(folder, name): removes the file from disk', (t) => {
 
 // refresh
 
-test('readFile(filePath): returns null when unable to read file', (t) => {
+test('readFile(filePath): returns undefined when unable to read file', (t) => {
   // const stub = sinon.stub(fs, 'readFileSync'); // BUG: https://github.com/avajs/ava/issues/1359
   const s = new StorageProvider(config);
-  const result = s.readFile('missing.json');
-  t.is(result, null);
+  const result = s.readFile(config.content_dir, 'missing');
+  t.is(result, undefined);
 });

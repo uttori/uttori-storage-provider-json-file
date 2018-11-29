@@ -16,7 +16,7 @@
   "dependencies": {
     "debug": "^4.1.0",
     "fs-extra": "^7.0.1",
-    "ramda": "^0.26.0",
+    "ramda": "^0.26.1",
     "sanitize-filename": "^1.6.1",
     "uttori-document": "^1.1.0"
   },

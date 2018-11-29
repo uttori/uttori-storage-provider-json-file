@@ -28,8 +28,7 @@ $ DEBUG=Uttori* npm test
 
 # Contributors
 
- - [Matthew Callis](https://github.com/MatthewCallis) - rewrite, refactor, testing of UttoriWiki
- - [Wade Kallhoff](https://github.com/wkallhof) - original author of Hazel
+ - [Matthew Callis](https://github.com/MatthewCallis)
 
 # License
   [GPL-3.0](LICENSE)
