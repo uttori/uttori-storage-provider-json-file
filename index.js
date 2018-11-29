@@ -1,5 +1,6 @@
 const debug = require('debug')('Uttori.StorageProvider.JSON');
-const fs = require('fs');
+const fs = require('fs-extra');
+const sanitize = require('sanitize-filename');
 const R = require('ramda');
 const path = require('path');
 const Document = require('uttori-document');
@@ -24,15 +25,18 @@ class StorageProvider {
       throw new Error('No data directory provided.');
     }
 
-    this.config = { ...config };
+    this.config = {
+      extension: 'json',
+      ...config,
+    };
 
     this.documents = [];
 
     /* istanbul ignore next */
     try {
-      fs.mkdirSync(this.config.content_dir);
-      fs.mkdirSync(this.config.history_dir);
-      fs.mkdirSync(this.config.data_dir);
+      fs.ensureDirSync(this.config.content_dir, { recursive: true });
+      fs.ensureDirSync(this.config.history_dir, { recursive: true });
+      fs.ensureDirSync(this.config.data_dir, { recursive: true });
     } catch (e) {
       if (e.code !== 'EEXIST') {
         debug('Error creting directories:', e);
@@ -53,7 +57,7 @@ class StorageProvider {
     }
     let document = R.clone(R.find(R.propEq('slug', slug))(this.documents));
     if (!document) {
-      debug(`Document not found ${slug}, creating.`);
+      debug(`Document not found: ${slug}, creating.`);
       document = new Document();
       document.slug = slug;
       document.title = slug;
@@ -70,27 +74,37 @@ class StorageProvider {
       document.updateDate = document.createDate;
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      this.storeDocument(document);
+      this.updateHistory(document.slug, JSON.stringify(document));
+      this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
       this.refresh();
     } else {
       debug('Cannot add, existing document.');
     }
   }
 
-  update(document) {
-    debug('Update document:', document.slug);
+  update(document, originalSlug) {
+    debug('Update:', document, originalSlug);
     const existing = this.get(document.slug);
+
     if (existing.createDate || existing.updateDate) {
-      debug('Updating document.', document);
+      debug('Updating document:', document);
       document.updateDate = Date.now();
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      this.storeDocument(document);
-      this.refresh();
+      this.updateHistory(document.slug, JSON.stringify(document), originalSlug);
+      this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
     } else {
-      debug('No document found to update, adding document.', document);
+      debug('No document found to update, adding document:', document);
       this.add(document);
     }
+
+    if (originalSlug && originalSlug !== existing.slug) {
+      debug('Removing original file:', originalSlug);
+      this.deleteFile(this.config.content_dir, originalSlug);
+      this.updateHistory(document.slug, JSON.stringify(document), originalSlug);
+    }
+
+    this.refresh();
   }
 
   delete(slug) {
@@ -98,99 +112,44 @@ class StorageProvider {
     const existing = this.get(slug);
     if (existing.createDate || existing.updateDate) {
       debug('Document found, deleting document:', slug);
-      this.deleteDocument(existing);
+      this.updateHistory(existing.slug, JSON.stringify(existing));
+      this.deleteFile(this.config.content_dir, slug);
       this.refresh();
+    } else {
+      debug('Document not found:', slug);
     }
   }
 
-  storeObject(fileName, object) {
-    debug('Storing Object:', fileName);
-    const filePath = path.join(this.config.data_dir, fileName);
-    try {
-      fs.writeFileSync(`${filePath}.json`, JSON.stringify(object), 'utf8');
-    } catch (e) {
-      /* istanbul ignore next */
-      debug('Unable to store object:', fileName, object, e);
+  storeObject(name, data) {
+    debug('Storing Object:', name, data);
+    if (typeof data !== 'string') {
+      data = JSON.stringify(data);
     }
+    this.writeFile(this.config.data_dir, name, data);
   }
 
-  readObject(fileName) {
-    debug('Reading Object:', fileName);
-    const filePath = path.join(this.config.data_dir, `${fileName}.json`);
-    const fileContent = this.readFile(filePath);
-    if (!fileContent) {
+  readObject(name) {
+    debug('Reading Object:', name);
+    const content = this.readFile(this.config.data_dir, name);
+    if (!content) {
       debug('Object has no content.');
-      return null;
+      return undefined;
     }
-    return JSON.parse(fileContent);
+    return content;
   }
 
   // Format Specific
-  readDocument(fileName) {
-    debug('Reading document.');
-    if (!fileName) {
-      debug('Missing required fileName.');
-      return undefined;
-    }
-
-    const filePath = path.join(this.config.content_dir, fileName);
-
-    // try to read the file on disk
-    const fileContent = this.readFile(filePath);
-    if (!fileContent) {
-      debug('Document has no content.');
-      return undefined;
-    }
-
-    let document;
-    try {
-      document = JSON.parse(fileContent);
-    } catch (e) {
-      /* istanbul ignore next */
-      debug('Error parsing JSON:', fileContent, e);
-    }
-
-    return document;
-  }
-
-  storeDocument(document) {
-    debug('Storing document:', document);
-    const fileContent = JSON.stringify(document);
-    try {
-      const filePath = path.join(this.config.content_dir, `${document.slug}.json`);
-      const historyPath = path.join(this.config.history_dir, `${document.slug}.${Date.now()}.json`);
-      fs.writeFileSync(filePath, fileContent, 'utf8');
-      fs.writeFileSync(historyPath, fileContent, 'utf8');
-    } catch (e) {
-      /* istanbul ignore next */
-      debug('Error storing document:', document, e);
-    }
-  }
-
-  deleteDocument(document) {
-    debug('Deleting document:', document);
-    const filePath = path.join(this.config.content_dir, `${document.slug}.json`);
-    try {
-      const historyPath = path.join(this.config.history_dir, `${document.slug}.${Date.now()}.json`);
-      fs.writeFileSync(historyPath, JSON.stringify(document), 'utf8');
-      fs.unlinkSync(filePath);
-    } catch (e) {
-      /* istanbul ignore next */
-      debug('Error deleting document:', document, e);
-    }
-  }
-
   refresh() {
     debug('Refreshing documents.');
     let documents = [];
     try {
       const fileNames = fs.readdirSync(this.config.content_dir);
       const validFiles = R.filter(
-        fileName => (fileName.length >= 6) && fileName.endsWith('.json'),
+        name => (name.length >= 6) && name.endsWith(this.config.extension),
         fileNames,
       );
       documents = R.map(
-        fileName => this.readDocument(fileName),
+        name => this.readFile(this.config.content_dir, path.parse(name).name),
         validFiles,
       );
     } catch (e) {
@@ -201,16 +160,67 @@ class StorageProvider {
     this.documents = R.reject(R.isNil, documents);
   }
 
-  readFile(filePath) {
-    debug('Reading file:', filePath);
-    let fileContent = null;
-    try {
-      fileContent = fs.readFileSync(filePath, 'utf8');
-    } catch (e) {
+  deleteFile(folder, name) {
+    debug('Deleting:', folder, name);
+    const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
+    debug('Deleting target:', target);
+    try { fs.unlinkSync(target); } catch (e) {
       /* istanbul ignore next */
-      debug('Error reading file:', filePath, e);
+      debug('Error deleting file:', target, e);
     }
-    return fileContent;
+  }
+
+  readFile(folder, name) {
+    debug('Reading:', folder, name);
+    const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
+    debug('Reading target:', target);
+    let content;
+    try { content = fs.readFileSync(target, 'utf8'); } catch (e) {
+      /* istanbul ignore next */
+      debug('Error reading file:', target, e);
+    }
+    try { content = JSON.parse(content); } catch (e) {
+      /* istanbul ignore next */
+      debug('Error parsing JSON:', content, e);
+    }
+    return content;
+  }
+
+  writeFile(folder, name, content) {
+    debug('Writing:', folder, name, content);
+    const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
+    debug('Writing target:', target);
+    try { fs.writeFileSync(target, content, 'utf8'); } catch (e) {
+      /* istanbul ignore next */
+      debug('Error writing file:', target, content, e);
+    }
+  }
+
+  updateHistory(slug, content, originalSlug) {
+    debug('Updating History:', slug, content, originalSlug);
+    // Rename old history folder if one existed
+    const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
+    if (originalSlug && originalSlug.length > 0 && originalSlug !== slug) {
+      /* istanbul ignore else */
+      if (fs.existsSync(folder)) {
+        const new_folder = path.join(this.config.history_dir, sanitize(`${slug}`));
+        debug('Renaming history folder:', folder, new_folder);
+        try { fs.moveSync(folder, new_folder); } catch (e) {
+          /* istanbul ignore next */
+          debug('Error renaming history folder:', folder, new_folder, e);
+        }
+      }
+    }
+
+    /* istanbul ignore else */
+    if (!fs.existsSync(folder)) {
+      /* istanbul ignore next */
+      try { fs.mkdirSync(folder, { recursive: true }); } catch (e) {
+        /* istanbul ignore next */
+        debug('Error creating document history folder:', folder, e);
+      }
+    }
+    this.writeFile(folder, Date.now(), content);
   }
 }
 

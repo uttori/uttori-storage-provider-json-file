@@ -24,68 +24,70 @@ const example = {
   },
 };
 
+const deleteFolderRecursive = (path) => {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach((file) => {
+      const curPath = `${path}/${file}`;
+      if (fs.lstatSync(curPath).isDirectory()) {
+        deleteFolderRecursive(curPath);
+      } else {
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
+
 test.beforeEach(() => {
-  fs.writeFileSync('test/site/content/example-title.json', JSON.stringify(example));
-  fs.writeFileSync('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}');
+  try { fs.mkdirSync('test/site/content/history', { recursive: true }); } catch (e) {}
+  try { fs.mkdirSync('test/site/data', { recursive: true }); } catch (e) {}
+  try { fs.writeFileSync('test/site/content/example-title.json', JSON.stringify(example)); } catch (e) {}
+  try { fs.writeFileSync('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}'); } catch (e) {}
 });
 
 test.afterEach(() => {
-  if (fs.existsSync(config.content_dir)) {
-    fs.readdirSync(config.content_dir).forEach((file) => {
-      try { fs.unlinkSync(`${config.content_dir}/${file}`); } catch (e) {}
-    });
-  }
-  if (fs.existsSync(config.history_dir)) {
-    fs.readdirSync(config.history_dir).forEach((file) => {
-      try { fs.unlinkSync(`${config.history_dir}/${file}`); } catch (e) {}
-    });
-  }
-  if (fs.existsSync(config.data_dir)) {
-    fs.readdirSync(config.data_dir).forEach((file) => {
-      try { fs.unlinkSync(`${config.data_dir}/${file}`); } catch (e) {}
-    });
-  }
+  deleteFolderRecursive('test/site');
 });
 
-test('Storage Provider: constructor(config): does not error', (t) => {
+test('constructor(config): does not error', (t) => {
   t.notThrows(() => new StorageProvider(config));
 });
 
-test('Storage Provider: constructor(config): throws an error when missing config', (t) => {
+test('constructor(config): throws an error when missing config', (t) => {
   t.throws(() => new StorageProvider());
 });
 
-test('Storage Provider: constructor(config): throws an error when missing config content directory', (t) => {
+test('constructor(config): throws an error when missing config content directory', (t) => {
   t.throws(() => new StorageProvider({ history_dir: '_', data_dir: '_' }));
 });
 
-test('Storage Provider: constructor(config): throws an error when missing config history directory', (t) => {
+test('constructor(config): throws an error when missing config history directory', (t) => {
   t.throws(() => new StorageProvider({ content_dir: '_', data_dir: '_' }));
 });
 
-test('Storage Provider: constructor(config): throws an error when missing config data directory', (t) => {
+test('constructor(config): throws an error when missing config data directory', (t) => {
   t.throws(() => new StorageProvider({ content_dir: '_', history_dir: '_' }));
 });
 
-test('Storage Provider: all(): returns all the documents', (t) => {
+test('all(): returns all the documents', (t) => {
   const s = new StorageProvider(config);
   const results = s.all();
   t.deepEqual(results, [example]);
 });
 
-test('Storage Provider: get(slug): returns the matching document', (t) => {
+test('get(slug): returns the matching document', (t) => {
   const s = new StorageProvider(config);
   const results = s.get(example.slug);
   t.deepEqual(results, example);
 });
 
-test('Storage Provider: get(slug): returns null when there is no slug', (t) => {
+test('get(slug): returns null when there is no slug', (t) => {
   const s = new StorageProvider(config);
   const results = s.get();
   t.is(results, null);
 });
 
-test('Storage Provider: get(slug): returns a new document when no document is found', (t) => {
+test('get(slug): returns a new document when no document is found', (t) => {
   const s = new StorageProvider(config);
   const results = s.get('missing-file');
   const document = new Document();
@@ -100,7 +102,7 @@ test('Storage Provider: get(slug): returns a new document when no document is fo
   t.deepEqual(results, document);
 });
 
-test('Storage Provider: add(slug): creates a new document', (t) => {
+test('add(slug): creates a new document', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -117,7 +119,7 @@ test('Storage Provider: add(slug): creates a new document', (t) => {
   t.is(results[1].slug, document.slug);
 });
 
-test('Storage Provider: add(slug): creates a new document with missing fields', (t) => {
+test('add(slug): creates a new document with missing fields', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -132,8 +134,7 @@ test('Storage Provider: add(slug): creates a new document with missing fields', 
   t.is(results[1].slug, document.slug);
 });
 
-
-test('Storage Provider: add(slug): does not create a document with the same slug', (t) => {
+test('add(slug): does not create a document with the same slug', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -153,7 +154,7 @@ test('Storage Provider: add(slug): does not create a document with the same slug
   t.is(results.length, 2);
 });
 
-test('Storage Provider: update(document): updates the file on disk', (t) => {
+test('update(document, originalSlug): updates the file on disk', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -167,12 +168,44 @@ test('Storage Provider: update(document): updates the file on disk', (t) => {
   s.add(document);
   t.is(s.all().length, 2);
   document.title = 'second file-v2';
-  s.update(document);
+  s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
 });
 
-test('Storage Provider: update(document): updates the file on disk with missing fields', (t) => {
+test('update(document, originalSlug): renames the history directory if it exists', (t) => {
+  const s = new StorageProvider(config);
+  const document = new Document();
+  document.content = '';
+  document.createDate = null;
+  document.customData = { test: true };
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = ['test'];
+  document.title = 'second file';
+  document.updateDate = null;
+  s.add(document);
+  t.is(s.all().length, 2);
+
+  document.title = 'second file-v2';
+  document.content = 'second file-v2';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 2);
+  t.is(s.all()[1].title, document.title);
+
+  document.title = 'second file-v3';
+  document.content = 'second file-v3';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 2);
+  t.is(s.all()[1].title, document.title);
+
+  document.slug = 'second-file-new-directory';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 2);
+  t.is(s.all()[1].title, document.title);
+});
+
+test('update(document, originalSlug): updates the file on disk with missing fields', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -184,44 +217,44 @@ test('Storage Provider: update(document): updates the file on disk with missing 
   s.add(document);
   t.is(s.all().length, 2);
   document.title = 'second file-v2';
-  s.update(document);
+  s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
 });
 
-test('Storage Provider: update(document): adds a document if the one to update is no found', (t) => {
+test('update(document, originalSlug): adds a document if the one to update is no found', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
-  document.createDate = null;
+  document.createDate = 1;
   document.customData = {};
   document.html = '';
   document.slug = 'third-file';
   document.tags = [];
   document.title = 'third file';
-  document.updateDate = null;
-  s.update(document);
+  document.updateDate = 1;
+  s.update(document, '');
   t.is(s.all().length, 2);
 });
 
-test('Storage Provider: delete(document): removes the file from disk', (t) => {
+test('delete(document): removes the file from disk', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
-  document.createDate = null;
+  document.createDate = 1;
   document.customData = {};
   document.html = '';
   document.slug = 'second-file';
   document.tags = [];
   document.title = 'second file';
-  document.updateDate = null;
+  document.updateDate = 1;
   s.add(document);
   t.is(s.all().length, 2);
   s.delete(document.slug);
   t.is(s.all().length, 1);
 });
 
-test('Storage Provider: delete(document): does nothing when no file is found', (t) => {
+test('delete(document): does nothing when no file is found', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -238,38 +271,45 @@ test('Storage Provider: delete(document): does nothing when no file is found', (
   t.is(s.all().length, 2);
 });
 
-test('Storage Provider: storeObject(fileName, object): writes the file to disk', (t) => {
+test('storeObject(fileName, object): writes the file to disk as object', (t) => {
   const s = new StorageProvider(config);
   const data = { test: true };
   s.storeObject('test', data);
   t.deepEqual(s.readObject('test'), data);
 });
 
-test('Storage Provider: readObject(fileName): returns an object found by file name', (t) => {
+test('storeObject(fileName, object): writes the file to disk as string', (t) => {
+  const s = new StorageProvider(config);
+  const data = '{ test: true }';
+  s.storeObject('test', data);
+  t.deepEqual(s.readObject('test'), data);
+});
+
+test('readObject(fileName): returns an object found by file name', (t) => {
   const s = new StorageProvider(config);
   const data = { test: true };
   s.storeObject('test', data);
   t.deepEqual(s.readObject('test'), data);
 });
 
-test('Storage Provider: readObject(fileName): returns null when no content is returned', (t) => {
+test('readObject(fileName): returns undefined when no content is returned', (t) => {
   const s = new StorageProvider(config);
-  t.is(s.readObject('missing'), null);
+  t.is(s.readObject('missing'), undefined);
 });
 
-test('Storage Provider: readDocument(slug): returns a document found by slug', (t) => {
+test('readFile(folder, name): returns a document found by slug', (t) => {
   const s = new StorageProvider(config);
-  const result = s.readDocument(`${example.slug}.json`);
+  const result = s.readFile(config.content_dir, example.slug);
   t.is(JSON.stringify(result), JSON.stringify(example));
 });
 
-test('Storage Provider: readDocument(slug): returns undefined when no slug is provided', (t) => {
+test('readFile(folder, name): returns undefined when no slug is provided', (t) => {
   const s = new StorageProvider(config);
-  const result = s.readDocument();
+  const result = s.readFile(config.content_dir, '');
   t.is(result, undefined);
 });
 
-test('Storage Provider: storeDocument(document): writes the file to disk', (t) => {
+test('writeFile(folder, name, content): writes the file to disk', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.title = 'Third Title';
@@ -283,12 +323,12 @@ test('Storage Provider: storeDocument(document): writes the file to disk', (t) =
     keyB: 'value-b',
     keyC: 'value-c',
   };
-  s.storeDocument(document);
-  const result = s.readDocument(`${document.slug}.json`);
+  s.writeFile(config.content_dir, document.slug, JSON.stringify(document));
+  const result = s.readFile(config.content_dir, document.slug);
   t.is(JSON.stringify(result), JSON.stringify(document));
 });
 
-test('Storage Provider: deleteDocument(document): removes the file from disk', (t) => {
+test('deleteFile(folder, name): removes the file from disk', (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.title = 'Third Title';
@@ -302,19 +342,19 @@ test('Storage Provider: deleteDocument(document): removes the file from disk', (
     keyB: 'value-b',
     keyC: 'value-c',
   };
-  s.storeDocument(document);
-  let result = s.readDocument(`${document.slug}.json`);
+  s.writeFile(config.content_dir, document.slug, JSON.stringify(document));
+  let result = s.readFile(config.content_dir, document.slug);
   t.is(JSON.stringify(result), JSON.stringify(document));
-  s.deleteDocument(document);
-  result = s.readDocument(`${document.slug}.json`);
+  s.deleteFile(config.content_dir, document.slug);
+  result = s.readFile(config.content_dir, document.slug);
   t.is(result, undefined);
 });
 
 // refresh
 
-test('Storage Provider: readFile(filePath): returns null when unable to read file', (t) => {
+test('readFile(filePath): returns undefined when unable to read file', (t) => {
   // const stub = sinon.stub(fs, 'readFileSync'); // BUG: https://github.com/avajs/ava/issues/1359
   const s = new StorageProvider(config);
-  const result = s.readFile('missing.json');
-  t.is(result, null);
+  const result = s.readFile(config.content_dir, 'missing');
+  t.is(result, undefined);
 });
