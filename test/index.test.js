@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const test = require('ava');
 const Document = require('uttori-document');
 const StorageProvider = require('../index');
@@ -24,29 +24,17 @@ const example = {
   },
 };
 
-const deleteFolderRecursive = (path) => {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file) => {
-      const curPath = `${path}/${file}`;
-      if (fs.lstatSync(curPath).isDirectory()) {
-        deleteFolderRecursive(curPath);
-      } else {
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
-  }
-};
 
-test.beforeEach(() => {
-  try { fs.mkdirSync('test/site/content/history', { recursive: true }); } catch (e) {}
-  try { fs.mkdirSync('test/site/data', { recursive: true }); } catch (e) {}
-  try { fs.writeFileSync('test/site/content/example-title.json', JSON.stringify(example)); } catch (e) {}
-  try { fs.writeFileSync('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}'); } catch (e) {}
+test.beforeEach(async () => {
+  await fs.removeSync('test/site');
+  await fs.ensureDirSync('test/site/content/history', { recursive: true });
+  await fs.ensureDirSync('test/site/data', { recursive: true });
+  await fs.writeFileSync('test/site/content/example-title.json', JSON.stringify(example));
+  await fs.writeFileSync('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}');
 });
 
-test.afterEach(() => {
-  deleteFolderRecursive('test/site');
+test.afterEach.always(async () => {
+  await fs.removeSync('test/site');
 });
 
 test('constructor(config): does not error', (t) => {
@@ -81,25 +69,126 @@ test('get(slug): returns the matching document', (t) => {
   t.deepEqual(results, example);
 });
 
-test('get(slug): returns null when there is no slug', (t) => {
+test('get(slug): returns undefined when there is no slug', (t) => {
   const s = new StorageProvider(config);
   const results = s.get();
-  t.is(results, null);
+  t.is(results, undefined);
 });
 
-test('get(slug): returns a new document when no document is found', (t) => {
+test('get(slug): returns undefined when no document is found', (t) => {
   const s = new StorageProvider(config);
-  const results = s.get('missing-file');
+  const document = s.get('missing-file');
+  t.is(document, undefined);
+});
+
+test('getHistory(slug): returns undefined when missing a slug', async (t) => {
+  const s = new StorageProvider(config);
+  t.is(s.getHistory(''), undefined);
+});
+
+test('getHistory(slug): returns an array of the history revisions', async (t) => {
+  await fs.removeSync('test/site');
+
+  const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
   document.createDate = null;
-  document.customData = {};
+  document.customData = { test: true };
   document.html = '';
-  document.slug = 'missing-file';
-  document.tags = [];
-  document.title = 'missing-file';
+  document.slug = 'second-file';
+  document.tags = ['test'];
+  document.title = 'second file';
   document.updateDate = null;
-  t.deepEqual(results, document);
+  s.add(document);
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file');
+  t.is(s.getHistory(document.slug).length, 1);
+
+  document.title = 'second file-v2';
+  document.content = 'second file-v2';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file-v2');
+  t.is(s.getHistory(document.slug).length, 2);
+
+  document.title = 'second file-v3';
+  document.content = 'second file-v3';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file-v3');
+  t.is(s.getHistory(document.slug).length, 3);
+
+  document.slug = 'second-file-new-directory';
+  document.title = 'second file-v4';
+  document.content = 'second file-v4';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file-v4');
+  t.is(s.getHistory(document.slug).length, 4);
+});
+
+test('getRevision(slug, revision): returns undefined when missing a slug', async (t) => {
+  const s = new StorageProvider(config);
+  t.is(s.getRevision(''), undefined);
+});
+
+test('getRevision(slug, revision): returns undefined when missing a revision', async (t) => {
+  const s = new StorageProvider(config);
+  t.is(s.getRevision('slug', ''), undefined);
+});
+
+test('getRevision(slug, revision): returns undefined when no revision is found', async (t) => {
+  const s = new StorageProvider(config);
+  t.is(s.getRevision('slug', 'missing'), undefined);
+});
+
+test('getRevision(slug, revision): returns a specific revision of an article', async (t) => {
+  await fs.removeSync('test/site');
+
+  const s = new StorageProvider(config);
+  const document = new Document();
+  document.content = '';
+  document.createDate = null;
+  document.customData = { test: true };
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = ['test'];
+  document.title = 'second file';
+  document.updateDate = null;
+  s.add(document);
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file');
+  t.is(s.getHistory(document.slug).length, 1);
+
+  document.title = 'second file-v2';
+  document.content = 'second file-v2';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file-v2');
+  t.is(s.getHistory(document.slug).length, 2);
+
+  document.title = 'second file-v3';
+  document.content = 'second file-v3';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file-v3');
+  t.is(s.getHistory(document.slug).length, 3);
+
+  document.slug = 'second-file-new-directory';
+  document.title = 'second file-v4';
+  document.content = 'second file-v4';
+  s.update(document, 'second-file');
+  t.is(s.all().length, 1);
+  t.is(s.all()[0].title, 'second file-v4');
+  t.is(s.getHistory(document.slug).length, 4);
+
+  const history = s.getHistory(document.slug);
+  t.is(history.length, 4);
+
+  t.is(s.getRevision(document.slug, history[0]).title, 'second file');
+  t.is(s.getRevision(document.slug, history[1]).title, 'second file-v2');
+  t.is(s.getRevision(document.slug, history[2]).title, 'second file-v3');
+  t.is(s.getRevision(document.slug, history[3]).title, 'second file-v4');
 });
 
 test('add(slug): creates a new document', (t) => {
@@ -186,23 +275,31 @@ test('update(document, originalSlug): renames the history directory if it exists
   document.updateDate = null;
   s.add(document);
   t.is(s.all().length, 2);
+  t.is(s.getHistory(document.slug).length, 1);
 
   document.title = 'second file-v2';
   document.content = 'second file-v2';
   s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
+  t.is(s.getHistory(document.slug).length, 2);
 
   document.title = 'second file-v3';
   document.content = 'second file-v3';
   s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
+  t.is(s.getHistory(document.slug).length, 3);
 
   document.slug = 'second-file-new-directory';
+  document.title = 'second file-v4';
+  document.content = 'second file-v4';
   s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
+
+  t.is(fs.existsSync(`${config.history_dir}/second-file-new-directory`), true);
+  t.is(fs.existsSync(`${config.history_dir}/second-file`), false);
 });
 
 test('update(document, originalSlug): updates the file on disk with missing fields', (t) => {
@@ -220,6 +317,23 @@ test('update(document, originalSlug): updates the file on disk with missing fiel
   s.update(document, 'second-file');
   t.is(s.all().length, 2);
   t.is(s.all()[1].title, document.title);
+});
+
+test('update(document, originalSlug): does not update when file exists', (t) => {
+  const s = new StorageProvider(config);
+  const document = new Document();
+  document.content = '';
+  document.createDate = null;
+  document.html = '';
+  document.slug = 'second-file';
+  document.title = 'second file';
+  document.updateDate = null;
+  s.add(document);
+  t.is(s.all().length, 2);
+  document.title = 'second file-v2';
+  s.update(document, 'example-title');
+  t.is(s.all().length, 2);
+  t.is(s.all()[1].title, 'second file');
 });
 
 test('update(document, originalSlug): adds a document if the one to update is no found', (t) => {
@@ -297,16 +411,22 @@ test('readObject(fileName): returns undefined when no content is returned', (t) 
   t.is(s.readObject('missing'), undefined);
 });
 
-test('readFile(folder, name): returns a document found by slug', (t) => {
+test('readFile(folder, name): returns a document found by name', (t) => {
   const s = new StorageProvider(config);
   const result = s.readFile(config.content_dir, example.slug);
   t.is(JSON.stringify(result), JSON.stringify(example));
 });
 
-test('readFile(folder, name): returns undefined when no slug is provided', (t) => {
+test('readFile(folder, name): returns undefined when no name is provided', (t) => {
   const s = new StorageProvider(config);
   const result = s.readFile(config.content_dir, '');
   t.is(result, undefined);
+});
+
+test('readFolder(folder): returns undefined when no folder is provided', (t) => {
+  const s = new StorageProvider(config);
+  const result = s.readFolder('');
+  t.deepEqual(result, []);
 });
 
 test('writeFile(folder, name, content): writes the file to disk', (t) => {

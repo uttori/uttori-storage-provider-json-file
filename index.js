@@ -47,20 +47,43 @@ class StorageProvider {
   }
 
   all() {
+    debug('all');
     return this.documents;
   }
 
   get(slug) {
+    debug('get', slug);
     if (!slug) {
       debug('Cannot get document without slug.', slug);
-      return null;
+      return undefined;
     }
-    let document = R.clone(R.find(R.propEq('slug', slug))(this.documents));
+    return R.clone(R.find(R.propEq('slug', slug))(this.documents));
+  }
+
+  getHistory(slug) {
+    debug('getHistory', slug);
+    if (!slug) {
+      debug('Cannot get document history without slug.', slug);
+      return undefined;
+    }
+    const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
+    return this.readFolder(folder);
+  }
+
+  getRevision(slug, revision) {
+    debug('getRevision', slug, revision);
+    if (!slug) {
+      debug('Cannot get document history without slug.', slug);
+      return undefined;
+    }
+    if (!revision) {
+      debug('Cannot get document history without revision.', revision);
+      return undefined;
+    }
+    const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
+    const document = this.readFile(folder, revision);
     if (!document) {
-      debug(`Document not found: ${slug}, creating.`);
-      document = new Document();
-      document.slug = slug;
-      document.title = slug;
+      debug(`Document history not found for "${slug}", with revision "${revision}"`);
     }
     return document;
   }
@@ -68,7 +91,7 @@ class StorageProvider {
   add(document) {
     debug('Add document:', document);
     const existing = this.get(document.slug);
-    if (!existing.createDate && !existing.updateDate) {
+    if (!existing) {
       debug('Adding document.', document);
       document.createDate = Date.now();
       document.updateDate = document.createDate;
@@ -78,39 +101,43 @@ class StorageProvider {
       this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
       this.refresh();
     } else {
-      debug('Cannot add, existing document.');
+      debug('Cannot add, existing document!');
     }
+  }
+
+  updateValid(document, originalSlug) {
+    document.updateDate = Date.now();
+    document.tags = R.isEmpty(document.tags) ? [] : document.tags;
+    document.customData = R.isEmpty(document.customData) ? {} : document.customData;
+    this.updateHistory(document.slug, JSON.stringify(document), originalSlug);
+    this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
+    this.refresh();
   }
 
   update(document, originalSlug) {
     debug('Update:', document, originalSlug);
     const existing = this.get(document.slug);
+    const original = this.get(originalSlug);
 
-    if (existing.createDate || existing.updateDate) {
+    if (existing && original && original.slug !== existing.slug) {
+      debug('Cannot update, existing document!');
+    } else if (existing && original && original.slug === existing.slug) {
       debug('Updating document:', document);
-      document.updateDate = Date.now();
-      document.tags = R.isEmpty(document.tags) ? [] : document.tags;
-      document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      this.updateHistory(document.slug, JSON.stringify(document), originalSlug);
-      this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
+      this.updateValid(document, originalSlug);
+    } else if (!existing && original) {
+      debug('Updating document and updating slug:', document);
+      this.deleteFile(this.config.content_dir, originalSlug);
+      this.updateValid(document, originalSlug);
     } else {
       debug('No document found to update, adding document:', document);
       this.add(document);
     }
-
-    if (originalSlug && originalSlug !== existing.slug) {
-      debug('Removing original file:', originalSlug);
-      this.deleteFile(this.config.content_dir, originalSlug);
-      this.updateHistory(document.slug, JSON.stringify(document), originalSlug);
-    }
-
-    this.refresh();
   }
 
   delete(slug) {
     debug('Delete document:', slug);
     const existing = this.get(slug);
-    if (existing.createDate || existing.updateDate) {
+    if (existing) {
       debug('Document found, deleting document:', slug);
       this.updateHistory(existing.slug, JSON.stringify(existing));
       this.deleteFile(this.config.content_dir, slug);
@@ -171,7 +198,7 @@ class StorageProvider {
   }
 
   readFile(folder, name) {
-    debug('Reading:', folder, name);
+    debug('Reading File:', folder, name);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Reading target:', target);
     let content;
@@ -186,8 +213,18 @@ class StorageProvider {
     return content;
   }
 
+  readFolder(folder) {
+    debug('Reading Folder:', folder);
+    if (fs.existsSync(folder)) {
+      const content = fs.readdirSync(folder) || [];
+      return content.map(file => path.parse(file).name);
+    }
+    debug('Folder not found!');
+    return [];
+  }
+
   writeFile(folder, name, content) {
-    debug('Writing:', folder, name, content);
+    debug('writeFile:', folder, name, content);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Writing target:', target);
     try { fs.writeFileSync(target, content, 'utf8'); } catch (e) {
@@ -197,30 +234,34 @@ class StorageProvider {
   }
 
   updateHistory(slug, content, originalSlug) {
-    debug('Updating History:', slug, content, originalSlug);
+    debug('updateHistory', slug, content, originalSlug);
+    const original_folder = path.join(this.config.history_dir, sanitize(`${originalSlug}`));
+    const new_folder = path.join(this.config.history_dir, sanitize(`${slug}`));
+
     // Rename old history folder if one existed
-    const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
-    if (originalSlug && originalSlug.length > 0 && originalSlug !== slug) {
+    if (slug && originalSlug && originalSlug !== slug) {
+      debug('Updating History...');
       /* istanbul ignore else */
-      if (fs.existsSync(folder)) {
-        const new_folder = path.join(this.config.history_dir, sanitize(`${slug}`));
-        debug('Renaming history folder:', folder, new_folder);
-        try { fs.moveSync(folder, new_folder); } catch (e) {
+      if (fs.existsSync(original_folder)) {
+        debug(`Renaming history folder from "${original_folder}" to "${new_folder}"`);
+        try { fs.moveSync(original_folder, new_folder); } catch (e) {
           /* istanbul ignore next */
-          debug('Error renaming history folder:', folder, new_folder, e);
+          debug(`Error renaming history folder from "${original_folder}" to "${new_folder}"`, e);
         }
       }
     }
 
     /* istanbul ignore else */
-    if (!fs.existsSync(folder)) {
+    if (!fs.existsSync(new_folder)) {
+      debug('Creating document history folder:', new_folder);
       /* istanbul ignore next */
-      try { fs.mkdirSync(folder, { recursive: true }); } catch (e) {
+      try { fs.mkdirSync(new_folder, { recursive: true }); } catch (e) {
         /* istanbul ignore next */
-        debug('Error creating document history folder:', folder, e);
+        debug('Error creating document history folder:', new_folder, e);
       }
     }
-    this.writeFile(folder, Date.now(), content);
+
+    this.writeFile(new_folder, Date.now(), content);
   }
 }
 

@@ -49,10 +49,10 @@
     "exclude": []
   },
   "scripts": {
-    "debug": "DEBUG=Uttori* NODE_ENV=test nyc ava -s",
+    "debug": "DEBUG=Uttori* NODE_ENV=test nyc ava --serial --concurrency 1 test",
     "lint": "eslint .",
     "report": "nyc report --reporter=html",
-    "test": "NODE_ENV=test nyc ava -s",
+    "test": "NODE_ENV=test nyc ava --serial --concurrency 1 test",
     "validate": "npm ls"
   }
 }
