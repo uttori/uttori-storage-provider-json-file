@@ -3,7 +3,6 @@ const fs = require('fs-extra');
 const sanitize = require('sanitize-filename');
 const R = require('ramda');
 const path = require('path');
-const Document = require('uttori-document');
 
 class StorageProvider {
   constructor(config) {

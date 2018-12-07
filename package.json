@@ -17,8 +17,7 @@
     "debug": "^4.1.0",
     "fs-extra": "^7.0.1",
     "ramda": "^0.26.1",
-    "sanitize-filename": "^1.6.1",
-    "uttori-document": "^1.1.0"
+    "sanitize-filename": "^1.6.1"
   },
   "devDependencies": {
     "ava": "1.0.0-rc.2",
@@ -33,7 +32,8 @@
     "eslint-plugin-xss": "^0.1.9",
     "nyc": "^13.1.0",
     "sinon": "^7.1.1",
-    "supertest": "^3.3.0"
+    "supertest": "^3.3.0",
+    "uttori-document": "^1.1.0"
   },
   "files": [
     "index.js"
