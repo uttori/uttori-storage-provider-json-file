@@ -26,15 +26,15 @@ const example = {
 
 
 test.beforeEach(async () => {
-  await fs.removeSync('test/site');
-  await fs.ensureDirSync('test/site/content/history', { recursive: true });
-  await fs.ensureDirSync('test/site/data', { recursive: true });
-  await fs.writeFileSync('test/site/content/example-title.json', JSON.stringify(example));
-  await fs.writeFileSync('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}');
+  await fs.remove('test/site');
+  await fs.ensureDir('test/site/content/history', { recursive: true });
+  await fs.ensureDir('test/site/data', { recursive: true });
+  await fs.writeFile('test/site/content/example-title.json', JSON.stringify(example));
+  await fs.writeFile('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}');
 });
 
 test.afterEach.always(async () => {
-  await fs.removeSync('test/site');
+  await fs.remove('test/site');
 });
 
 test('constructor(config): does not error', (t) => {
@@ -87,7 +87,7 @@ test('getHistory(slug): returns undefined when missing a slug', async (t) => {
 });
 
 test('getHistory(slug): returns an array of the history revisions', async (t) => {
-  await fs.removeSync('test/site');
+  await fs.remove('test/site');
 
   const s = new StorageProvider(config);
   const document = new Document();
@@ -143,7 +143,7 @@ test('getRevision(slug, revision): returns undefined when no revision is found',
 });
 
 test('getRevision(slug, revision): returns a specific revision of an article', async (t) => {
-  await fs.removeSync('test/site');
+  await fs.remove('test/site');
 
   const s = new StorageProvider(config);
   const document = new Document();
