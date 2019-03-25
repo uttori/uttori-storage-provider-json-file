@@ -14,25 +14,25 @@
     "node": ">= 8.11"
   },
   "dependencies": {
-    "debug": "^4.1.0",
+    "debug": "^4.1.1",
     "fs-extra": "^7.0.1",
     "ramda": "^0.26.1",
     "sanitize-filename": "^1.6.1"
   },
   "devDependencies": {
-    "ava": "1.0.0-rc.2",
-    "eslint": "^5.9.0",
+    "ava": "^1.4.0",
+    "eslint": "^5.15.3",
     "eslint-config-airbnb": "^17.1.0",
-    "eslint-plugin-ava": "^5.1.1",
-    "eslint-plugin-import": "^2.14.0",
-    "eslint-plugin-jsx-a11y": "^6.1.2",
+    "eslint-plugin-ava": "^6.0.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-jsx-a11y": "^6.2.1",
     "eslint-plugin-no-inferred-method-name": "^1.0.2",
-    "eslint-plugin-node": "^8.0.0",
-    "eslint-plugin-react": "^7.11.1",
+    "eslint-plugin-node": "^8.0.1",
+    "eslint-plugin-react": "^7.12.4",
     "eslint-plugin-xss": "^0.1.9",
-    "nyc": "^13.1.0",
-    "sinon": "^7.1.1",
-    "supertest": "^3.3.0",
+    "nyc": "^13.3.0",
+    "sinon": "^7.3.0",
+    "supertest": "^4.0.2",
     "uttori-document": "^1.1.0"
   },
   "files": [
