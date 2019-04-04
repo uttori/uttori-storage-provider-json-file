@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const test = require('ava');
 const Document = require('uttori-document');
-const StorageProvider = require('../index');
+const StorageProvider = require('..');
 
 const config = {
   content_dir: 'test/site/content',
@@ -81,7 +81,7 @@ test('get(slug): returns undefined when no document is found', (t) => {
   t.is(document, undefined);
 });
 
-test('getHistory(slug): returns undefined when missing a slug', async (t) => {
+test('getHistory(slug): returns undefined when missing a slug', (t) => {
   const s = new StorageProvider(config);
   t.is(s.getHistory(''), undefined);
 });
@@ -127,17 +127,17 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   t.is(s.getHistory(document.slug).length, 4);
 });
 
-test('getRevision(slug, revision): returns undefined when missing a slug', async (t) => {
+test('getRevision(slug, revision): returns undefined when missing a slug', (t) => {
   const s = new StorageProvider(config);
   t.is(s.getRevision(''), undefined);
 });
 
-test('getRevision(slug, revision): returns undefined when missing a revision', async (t) => {
+test('getRevision(slug, revision): returns undefined when missing a revision', (t) => {
   const s = new StorageProvider(config);
   t.is(s.getRevision('slug', ''), undefined);
 });
 
-test('getRevision(slug, revision): returns undefined when no revision is found', async (t) => {
+test('getRevision(slug, revision): returns undefined when no revision is found', (t) => {
   const s = new StorageProvider(config);
   t.is(s.getRevision('slug', 'missing'), undefined);
 });

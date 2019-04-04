@@ -36,9 +36,9 @@ class StorageProvider {
       fs.ensureDirSync(this.config.content_dir, { recursive: true });
       fs.ensureDirSync(this.config.history_dir, { recursive: true });
       fs.ensureDirSync(this.config.data_dir, { recursive: true });
-    } catch (e) {
-      if (e.code !== 'EEXIST') {
-        debug('Error creting directories:', e);
+    } catch (error) {
+      if (error.code !== 'EEXIST') {
+        debug('Error creting directories:', error);
       }
     }
 
@@ -178,9 +178,9 @@ class StorageProvider {
         name => this.readFile(this.config.content_dir, path.parse(name).name),
         validFiles,
       );
-    } catch (e) {
+    } catch (error) {
       /* istanbul ignore next */
-      debug('Error refreshing documents:', e);
+      debug('Error refreshing documents:', error);
     }
 
     this.documents = R.reject(R.isNil, documents);
@@ -190,9 +190,9 @@ class StorageProvider {
     debug('Deleting:', folder, name);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Deleting target:', target);
-    try { fs.unlinkSync(target); } catch (e) {
+    try { fs.unlinkSync(target); } catch (error) {
       /* istanbul ignore next */
-      debug('Error deleting file:', target, e);
+      debug('Error deleting file:', target, error);
     }
   }
 
@@ -201,13 +201,13 @@ class StorageProvider {
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Reading target:', target);
     let content;
-    try { content = fs.readFileSync(target, 'utf8'); } catch (e) {
+    try { content = fs.readFileSync(target, 'utf8'); } catch (error) {
       /* istanbul ignore next */
-      debug('Error reading file:', target, e);
+      debug('Error reading file:', target, error);
     }
-    try { content = JSON.parse(content); } catch (e) {
+    try { content = JSON.parse(content); } catch (error) {
       /* istanbul ignore next */
-      debug('Error parsing JSON:', content, e);
+      debug('Error parsing JSON:', content, error);
     }
     return content;
   }
@@ -226,9 +226,9 @@ class StorageProvider {
     debug('writeFile:', folder, name, content);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Writing target:', target);
-    try { fs.writeFileSync(target, content, 'utf8'); } catch (e) {
+    try { fs.writeFileSync(target, content, 'utf8'); } catch (error) {
       /* istanbul ignore next */
-      debug('Error writing file:', target, content, e);
+      debug('Error writing file:', target, content, error);
     }
   }
 
@@ -243,9 +243,9 @@ class StorageProvider {
       /* istanbul ignore else */
       if (fs.existsSync(original_folder)) {
         debug(`Renaming history folder from "${original_folder}" to "${new_folder}"`);
-        try { fs.moveSync(original_folder, new_folder); } catch (e) {
+        try { fs.moveSync(original_folder, new_folder); } catch (error) {
           /* istanbul ignore next */
-          debug(`Error renaming history folder from "${original_folder}" to "${new_folder}"`, e);
+          debug(`Error renaming history folder from "${original_folder}" to "${new_folder}"`, error);
         }
       }
     }
@@ -254,9 +254,9 @@ class StorageProvider {
     if (!fs.existsSync(new_folder)) {
       debug('Creating document history folder:', new_folder);
       /* istanbul ignore next */
-      try { fs.mkdirSync(new_folder, { recursive: true }); } catch (e) {
+      try { fs.mkdirSync(new_folder, { recursive: true }); } catch (error) {
         /* istanbul ignore next */
-        debug('Error creating document history folder:', new_folder, e);
+        debug('Error creating document history folder:', new_folder, error);
       }
     }
 
