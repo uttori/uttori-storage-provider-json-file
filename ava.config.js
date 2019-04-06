@@ -3,7 +3,7 @@ export default {
     'test/**/*.test.js',
   ],
   sources: [
-    'app/**/*.js',
+    'index.js',
   ],
   concurrency: 5,
   failFast: false,
