@@ -8,8 +8,11 @@ Uttori storage provider using JSON files on disk.
 {
   content_dir: '',
   history_dir: '',
-  data_dir: '',
+  data_dir: '',  
   extension: 'json',
+  spaces_article: null,
+  spaces_data: null,
+  spaces_history: null,
 }
 ```
 

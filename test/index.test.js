@@ -7,6 +7,10 @@ const config = {
   content_dir: 'test/site/content',
   history_dir: 'test/site/content/history',
   data_dir: 'test/site/data',
+  extension: 'json',
+  spaces_article: null,
+  spaces_data: null,
+  spaces_history: null,
 };
 
 const example = {

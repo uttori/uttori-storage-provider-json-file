@@ -26,6 +26,9 @@ class StorageProvider {
 
     this.config = {
       extension: 'json',
+      spaces_article: null,
+      spaces_data: null,
+      spaces_history: null,
       ...config,
     };
 
@@ -96,8 +99,8 @@ class StorageProvider {
       document.updateDate = document.createDate;
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      this.updateHistory(document.slug, JSON.stringify(document));
-      this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
+      this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history));
+      this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
       this.refresh();
     } else {
       debug('Cannot add, existing document!');
@@ -108,8 +111,8 @@ class StorageProvider {
     document.updateDate = Date.now();
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-    this.updateHistory(document.slug, JSON.stringify(document), originalSlug);
-    this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document));
+    this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history), originalSlug);
+    this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
     this.refresh();
   }
 
@@ -138,7 +141,7 @@ class StorageProvider {
     const existing = this.get(slug);
     if (existing) {
       debug('Document found, deleting document:', slug);
-      this.updateHistory(existing.slug, JSON.stringify(existing));
+      this.updateHistory(existing.slug, JSON.stringify(existing, null, this.config.spaces_history));
       this.deleteFile(this.config.content_dir, slug);
       this.refresh();
     } else {
@@ -149,7 +152,7 @@ class StorageProvider {
   storeObject(name, data) {
     debug('Storing Object:', name, data);
     if (typeof data !== 'string') {
-      data = JSON.stringify(data);
+      data = JSON.stringify(data, null, this.config.spaces_data);
     }
     this.writeFile(this.config.data_dir, name, data);
   }
@@ -215,7 +218,7 @@ class StorageProvider {
   readFolder(folder) {
     debug('Reading Folder:', folder);
     if (fs.existsSync(folder)) {
-      const content = fs.readdirSync(folder) || [];
+      const content = fs.readdirSync(folder);
       return content.map(file => path.parse(file).name);
     }
     debug('Folder not found!');
