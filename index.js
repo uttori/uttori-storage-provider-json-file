@@ -6,7 +6,7 @@ const path = require('path');
 
 class StorageProvider {
   constructor(config) {
-    debug('Constructing...');
+    debug('constructor', config);
     if (!config) {
       debug('No config provided.');
       throw new Error('No config provided.');
@@ -48,21 +48,111 @@ class StorageProvider {
     this.refresh();
   }
 
-  all() {
+  async all() {
     debug('all');
-    return this.documents;
+    return Promise.all(this.documents);
   }
 
-  get(slug) {
+  async tags() {
+    debug('tags');
+    const all = await this.all();
+    let tags = R.pluck('tags')(all);
+    tags = R.uniq(R.flatten(tags));
+    tags = R.filter(R.identity)(tags);
+    tags = R.sort((a, b) => a.localeCompare(b), tags);
+    debug('tags:', tags);
+    return tags;
+  }
+
+  async getTaggedDocuments(tag, fields) {
+    debug('getTaggedDocuments:', tag, fields);
+    const all = await this.all();
+    return R.sort(
+      (a, b) => a.title.localeCompare(b.title),
+      R.filter(
+        document => document.tags.includes(tag),
+        all,
+      ),
+    );
+  }
+
+  async getRecentDocuments(limit, fields) {
+    debug('getRecentDocuments:', limit, fields);
+    const all = await this.all();
+    return R.take(
+      limit,
+      R.sort(
+        (a, b) => (b.updateDate - a.updateDate),
+        R.reject(
+          document => !document.updateDate,
+          all,
+        ),
+      ),
+    );
+  }
+
+  async getPopularDocuments(limit, fields) {
+    debug('getPopularDocuments:', limit, fields);
+    const visits = await this.readObject('visits');
+    const all = await this.all();
+    return R.take(
+      limit,
+      R.sort(
+        (a, b) => visits[b.slug] - visits[a.slug],
+        R.reject(
+          document => (visits[document.slug] || 0) === 0,
+          all,
+        ),
+      ),
+    );
+  }
+
+  async getRandomDocuments(limit, fields) {
+    debug('getRandomDocuments:', limit, fields);
+    const all = await this.all();
+    return R.take(
+      limit,
+      R.sort(
+        (_a, _b) => Math.random() - Math.random(),
+        all,
+      ),
+    );
+  }
+
+  async augmentDocuments(documents, _fields) {
+    debug('augmentDocuments:', documents, _fields);
+    const all = await this.all();
+    return R.reject(
+      R.isNil,
+      R.map(
+        result => R.find(
+          R.propEq('slug', result.slug),
+          all,
+        ),
+        documents,
+      ),
+    );
+  }
+
+  async get(slug) {
     debug('get', slug);
     if (!slug) {
       debug('Cannot get document without slug.', slug);
       return undefined;
     }
-    return R.clone(R.find(R.propEq('slug', slug))(this.documents));
+    const document = R.clone(
+      R.find(
+        R.propEq('slug', slug),
+      )(await this.all()),
+    );
+
+    // Analytics: Update Page Views
+    if (document) await this.incrementObject('visits', slug, 1);
+
+    return document;
   }
 
-  getHistory(slug) {
+  async getHistory(slug) {
     debug('getHistory', slug);
     if (!slug) {
       debug('Cannot get document history without slug.', slug);
@@ -72,7 +162,7 @@ class StorageProvider {
     return this.readFolder(folder);
   }
 
-  getRevision(slug, revision) {
+  async getRevision(slug, revision) {
     debug('getRevision', slug, revision);
     if (!slug) {
       debug('Cannot get document history without slug.', slug);
@@ -83,93 +173,148 @@ class StorageProvider {
       return undefined;
     }
     const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
-    const document = this.readFile(folder, revision);
+    const document = await this.readFile(folder, revision);
     if (!document) {
       debug(`Document history not found for "${slug}", with revision "${revision}"`);
     }
     return document;
   }
 
-  add(document) {
+  async add(document) {
     debug('Add document:', document);
-    const existing = this.get(document.slug);
+    const existing = await this.get(document.slug);
     if (!existing) {
       debug('Adding document.', document);
       document.createDate = Date.now();
       document.updateDate = document.createDate;
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history));
-      this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
-      this.refresh();
+      await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history));
+      await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
+      await this.refresh();
     } else {
       debug('Cannot add, existing document!');
     }
   }
 
-  updateValid(document, originalSlug) {
+  async updateValid(document, originalSlug) {
     document.updateDate = Date.now();
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-    this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history), originalSlug);
-    this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
-    this.refresh();
+    await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history), originalSlug);
+    await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
+    await this.refresh();
   }
 
-  update(document, originalSlug) {
+  async update(document, originalSlug) {
     debug('Update:', document, originalSlug);
-    const existing = this.get(document.slug);
-    const original = this.get(originalSlug);
+    const existing = await this.get(document.slug);
+    const original = await this.get(originalSlug);
 
     if (existing && original && original.slug !== existing.slug) {
       debug('Cannot update, existing document!');
     } else if (existing && original && original.slug === existing.slug) {
       debug('Updating document:', document);
-      this.updateValid(document, originalSlug);
+      await this.updateValid(document, originalSlug);
     } else if (!existing && original) {
       debug('Updating document and updating slug:', document);
-      this.deleteFile(this.config.content_dir, originalSlug);
-      this.updateValid(document, originalSlug);
+      await this.deleteFile(this.config.content_dir, originalSlug);
+      await this.updateValid(document, originalSlug);
     } else {
       debug('No document found to update, adding document:', document);
-      this.add(document);
+      await this.add(document);
     }
   }
 
-  delete(slug) {
-    debug('Delete document:', slug);
-    const existing = this.get(slug);
+  async delete(slug) {
+    debug('delete:', slug);
+    const existing = await this.get(slug);
     if (existing) {
       debug('Document found, deleting document:', slug);
-      this.updateHistory(existing.slug, JSON.stringify(existing, null, this.config.spaces_history));
-      this.deleteFile(this.config.content_dir, slug);
-      this.refresh();
+      await this.updateHistory(existing.slug, JSON.stringify(existing, null, this.config.spaces_history));
+      await this.deleteFile(this.config.content_dir, slug);
+      await this.refresh();
     } else {
       debug('Document not found:', slug);
     }
   }
 
-  storeObject(name, data) {
-    debug('Storing Object:', name, data);
+  async storeObject(name, data) {
+    debug('storeObject:', name, data);
     if (typeof data !== 'string') {
       data = JSON.stringify(data, null, this.config.spaces_data);
     }
-    this.writeFile(this.config.data_dir, name, data);
+    await this.writeFile(this.config.data_dir, name, data);
   }
 
-  readObject(name) {
-    debug('Reading Object:', name);
-    const content = this.readFile(this.config.data_dir, name);
+  async updateObject(name, key, value) {
+    debug('updateObject:', name, key, value);
+    if (!name || !key) {
+      return;
+    }
+    let content = await this.readObject(name);
     if (!content) {
-      debug('Object has no content.');
-      return undefined;
+      debug(`Object (${name}) has no content, creating.`);
+      content = {};
+    }
+    content[key] = value;
+    await this.storeObject(name, content);
+  }
+
+  async incrementObject(name, key, amount = 1) {
+    debug('incrementObject:', name, key, amount);
+    if (!name || !key) {
+      return;
+    }
+    const content = await this.readObject(name);
+    if (!content) {
+      debug(`Object (${name}) has no content.`);
+      return;
+    }
+    content[key] = (parseInt(content[key], 10) || 0) + amount;
+    await this.storeObject(name, content);
+  }
+
+  async decrementObject(name, key, amount = 1) {
+    debug('decrementObject:', name, key, amount);
+    if (!name || !key) {
+      return;
+    }
+    const content = await this.readObject(name);
+    if (!content) {
+      debug(`Object (${name}) has no content.`);
+      return;
+    }
+    content[key] = (parseInt(content[key], 10) || 0) - amount;
+    await this.storeObject(name, content);
+  }
+
+  async readObject(name, fallback) {
+    debug('readObject:', name);
+    if (!name) {
+      return fallback;
+    }
+    const content = await this.readFile(this.config.data_dir, name);
+    if (!content) {
+      debug(`Object (${name}) has no content.`);
+      return fallback;
     }
     return content;
   }
 
+  async readObjectValue(name, key, fallback) {
+    debug('readObjectValue:', name, key, fallback);
+    if (!name || !key) {
+      debug('Missing either name or key');
+      return fallback;
+    }
+    const data = await this.readObject(name, {});
+    return data[key] || fallback;
+  }
+
   // Format Specific
-  refresh() {
-    debug('Refreshing documents.');
+  async refresh() {
+    debug('refresh');
     let documents = [];
     try {
       const fileNames = fs.readdirSync(this.config.content_dir);
@@ -189,22 +334,22 @@ class StorageProvider {
     this.documents = R.reject(R.isNil, documents);
   }
 
-  deleteFile(folder, name) {
+  async deleteFile(folder, name) {
     debug('Deleting:', folder, name);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Deleting target:', target);
-    try { fs.unlinkSync(target); } catch (error) {
+    try { await fs.unlink(target); } catch (error) {
       /* istanbul ignore next */
       debug('Error deleting file:', target, error);
     }
   }
 
-  readFile(folder, name) {
+  async readFile(folder, name) {
     debug('Reading File:', folder, name);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Reading target:', target);
     let content;
-    try { content = fs.readFileSync(target, 'utf8'); } catch (error) {
+    try { content = await fs.readFile(target, 'utf8'); } catch (error) {
       /* istanbul ignore next */
       debug('Error reading file:', target, error);
     }
@@ -215,27 +360,27 @@ class StorageProvider {
     return content;
   }
 
-  readFolder(folder) {
+  async readFolder(folder) {
     debug('Reading Folder:', folder);
-    if (fs.existsSync(folder)) {
-      const content = fs.readdirSync(folder);
+    if (await fs.exists(folder)) {
+      const content = await fs.readdir(folder);
       return content.map(file => path.parse(file).name);
     }
     debug('Folder not found!');
     return [];
   }
 
-  writeFile(folder, name, content) {
+  async writeFile(folder, name, content) {
     debug('writeFile:', folder, name, content);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Writing target:', target);
-    try { fs.writeFileSync(target, content, 'utf8'); } catch (error) {
+    try { await fs.writeFile(target, content, 'utf8'); } catch (error) {
       /* istanbul ignore next */
       debug('Error writing file:', target, content, error);
     }
   }
 
-  updateHistory(slug, content, originalSlug) {
+  async updateHistory(slug, content, originalSlug) {
     debug('updateHistory', slug, content, originalSlug);
     const original_folder = path.join(this.config.history_dir, sanitize(`${originalSlug}`));
     const new_folder = path.join(this.config.history_dir, sanitize(`${slug}`));
@@ -244,9 +389,9 @@ class StorageProvider {
     if (slug && originalSlug && originalSlug !== slug) {
       debug('Updating History...');
       /* istanbul ignore else */
-      if (fs.existsSync(original_folder)) {
+      if (await fs.exists(original_folder)) {
         debug(`Renaming history folder from "${original_folder}" to "${new_folder}"`);
-        try { fs.moveSync(original_folder, new_folder); } catch (error) {
+        try { await fs.move(original_folder, new_folder); } catch (error) {
           /* istanbul ignore next */
           debug(`Error renaming history folder from "${original_folder}" to "${new_folder}"`, error);
         }
@@ -254,16 +399,16 @@ class StorageProvider {
     }
 
     /* istanbul ignore else */
-    if (!fs.existsSync(new_folder)) {
+    if (!await fs.exists(new_folder)) {
       debug('Creating document history folder:', new_folder);
       /* istanbul ignore next */
-      try { fs.mkdirSync(new_folder, { recursive: true }); } catch (error) {
+      try { await fs.mkdir(new_folder, { recursive: true }); } catch (error) {
         /* istanbul ignore next */
         debug('Error creating document history folder:', new_folder, error);
       }
     }
 
-    this.writeFile(new_folder, Date.now(), content);
+    await this.writeFile(new_folder, Date.now(), content);
   }
 }
 
