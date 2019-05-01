@@ -1,14 +1,14 @@
 const fs = require('fs-extra');
 const test = require('ava');
 const Document = require('uttori-document');
-const StorageProvider = require('..');
+const StorageProvider = require('./../src');
 
 const config = {
   content_dir: 'test/site/content',
   history_dir: 'test/site/content/history',
   data_dir: 'test/site/data',
   extension: 'json',
-  spaces_article: null,
+  spaces_document: null,
   spaces_data: null,
   spaces_history: null,
 };
@@ -46,7 +46,7 @@ const fake = {
   html: '',
   updateDate: 1459310452002,
   createDate: 1459310452002,
-  tags: ['Fake'],
+  tags: ['Example Tag', 'Fake'],
   customData: {},
 };
 
@@ -93,16 +93,19 @@ test('tags(): returns all unique tags from all the documents', async (t) => {
   await s.add(fake);
   await s.add(empty);
   const results = await s.tags();
-  t.deepEqual(results, [example.tags[0], fake.tags[0]]);
+  t.deepEqual(results, ['Example Tag', 'Fake']);
 });
 
-test('getTaggedDocuments(tag, fields): returns documents with the given tag', async (t) => {
+test('getTaggedDocuments(tag, limit, fields): returns documents with the given tag', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
-  t.deepEqual(await s.getTaggedDocuments('Example Tag'), [example]);
-  t.deepEqual(await s.getTaggedDocuments('Fake'), [empty, fake]);
-  t.deepEqual(await s.getTaggedDocuments('No Tag'), []);
+  let output = await s.getTaggedDocuments('Example Tag');
+  t.deepEqual(output, [example, fake]);
+  output = await s.getTaggedDocuments('Fake');
+  t.deepEqual(output, [empty, fake]);
+  output = await s.getTaggedDocuments('No Tag');
+  t.deepEqual(output, []);
 });
 
 test('getRecentDocuments(limit, fields): returns the requested number of the most recently updated documents', async (t) => {
@@ -113,6 +116,34 @@ test('getRecentDocuments(limit, fields): returns the requested number of the mos
   t.deepEqual(await s.getRecentDocuments(1), [empty]);
   t.deepEqual(await s.getRecentDocuments(2), [empty, fake]);
   t.deepEqual(await s.getRecentDocuments(3), [empty, fake, example]);
+});
+
+test('getRelatedDocuments(document, limit, fields): returns the requested number of the related documents', async (t) => {
+  const s = new StorageProvider(config);
+  await s.add(fake);
+  const tagged = { ...empty, tags: ['Example Tag'] };
+  await s.add(tagged);
+
+  const output = await s.getRelatedDocuments(example, 2);
+  t.deepEqual(output, [tagged, fake]);
+});
+
+test('getRelatedDocuments(document, limit, fields): does not throw without document', async (t) => {
+  const s = new StorageProvider(config);
+  await s.add(fake);
+  await s.add(empty);
+  t.notThrows(async () => {
+    await s.getRelatedDocuments(null, 2);
+  });
+});
+
+test('getRelatedDocuments(document, limit, fields): does not throw without document tags', async (t) => {
+  const s = new StorageProvider(config);
+  await s.add(fake);
+  await s.add(empty);
+  t.notThrows(async () => {
+    await s.getRelatedDocuments({ slug: 'missing' }, 2);
+  });
 });
 
 test('getPopularDocuments(limit, fields): returns the requested number of popular documents', async (t) => {
@@ -135,7 +166,6 @@ test('getPopularDocuments(limit, fields): returns the requested number of popula
   t.deepEqual(output, [example, fake]);
 });
 
-// TODO: More documents
 test('getRandomDocuments(limit, fields): returns the requested number of random documents', async (t) => {
   let output;
   const s = new StorageProvider(config);
@@ -699,14 +729,14 @@ test('readObject(name, fallback): returns an object found by name', async (t) =>
 
 test('readObject(name, fallback): returns fallback when no name is provided', async (t) => {
   const s = new StorageProvider(config);
-  const output = await s.readObject('', 'ðŸ');
-  t.is(output, 'ðŸ');
+  const output = await s.readObject('', '?');
+  t.is(output, '?');
 });
 
 test('readObject(name, fallback): returns fallback when no content is returned', async (t) => {
   const s = new StorageProvider(config);
-  const output = await s.readObject('missing', 'ðŸ');
-  t.is(output, 'ðŸ');
+  const output = await s.readObject('missing', '?');
+  t.is(output, '?');
 });
 
 test('readObjectValue(name, key, fallback): returns a value from an object', async (t) => {

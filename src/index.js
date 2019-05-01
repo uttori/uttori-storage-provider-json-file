@@ -4,6 +4,16 @@ const sanitize = require('sanitize-filename');
 const R = require('ramda');
 const path = require('path');
 
+/**
+  * Storage for Uttori documents using JSON files stored on the local file system.
+  * @param {Object} config - A configuration object.
+  * @param {string} [config.extension=JSON] - The file extension to use for file, name of the employee.
+  * @param {string} [config.analytics_file=visits] - The name of the file to store page views.
+  * @param {number} [config.spaces_document=null] - The spaces parameter for JSON stringifying documents.
+  * @param {number} [config.spaces_data=null] - The spaces parameter for JSON stringifying data.
+  * @param {number} [config.spaces_history=null] - The spaces parameter for JSON stringifying history.
+  * @class StorageProvider
+  */
 class StorageProvider {
   constructor(config) {
     debug('constructor', config);
@@ -26,7 +36,8 @@ class StorageProvider {
 
     this.config = {
       extension: 'json',
-      spaces_article: null,
+      analytics_file: 'visits',
+      spaces_document: null,
       spaces_data: null,
       spaces_history: null,
       ...config,
@@ -48,11 +59,23 @@ class StorageProvider {
     this.refresh();
   }
 
+  /**
+   * Returns all documents.
+   * @async
+   * @returns {Promise} Promise object represents all documents.
+   * @memberof StorageProvider
+   */
   async all() {
     debug('all');
     return Promise.all(this.documents);
   }
 
+  /**
+   * Returns all unique tags.
+   * @async
+   * @returns {Promise} Promise object represents all documents.
+   * @memberof StorageProvider
+   */
   async tags() {
     debug('tags');
     const all = await this.all();
@@ -64,18 +87,74 @@ class StorageProvider {
     return tags;
   }
 
-  async getTaggedDocuments(tag, fields) {
+  /**
+   * Returns all documents matching a given tag.
+   * @async
+   * @param {string} tag - The tag to compare against other documents.
+   * @param {number} [limit=1000] - The maximum number of documents to return.
+   * @param {string[]} fields - Unused: the fields to return on the documents.
+   * @returns {Promise} Promise object represents all matching documents.
+   * @memberof StorageProvider
+   */
+  async getTaggedDocuments(tag, limit = 1000, fields) {
     debug('getTaggedDocuments:', tag, fields);
     const all = await this.all();
-    return R.sort(
-      (a, b) => a.title.localeCompare(b.title),
-      R.filter(
-        document => document.tags.includes(tag),
-        all,
+    return R.take(
+      limit,
+      R.sort(
+        (a, b) => a.title.localeCompare(b.title),
+        R.filter(
+          document => document.tags.includes(tag),
+          R.reject(
+            R.propEq('slug', this.config.home_page),
+            all,
+          ),
+        ),
       ),
     );
   }
 
+  /**
+   * Returns a given number of documents related to a given document by comparing tags.
+   * @async
+   * @param {UttoriDocument} document - The document to compare against other documents.
+   * @param {number} limit - The maximum number of documents to return.
+   * @param {string[]} fields - Unused: the fields to return on the documents.
+   * @returns {Promise} Promise object represents all matching documents.
+   * @memberof StorageProvider
+   */
+  async getRelatedDocuments(document, limit, fields) {
+    debug('getTaggedDocuments:', document, limit, fields);
+    if (!document) {
+      return [];
+    }
+    const tags = document.tags || [];
+    const all = await this.all();
+    const overlaps = R.pipe(R.intersection, R.complement(R.isEmpty));
+
+    return R.take(
+      limit,
+      R.sort(
+        (a, b) => a.title.localeCompare(b.title),
+        R.filter(
+          d => overlaps(tags, d.tags),
+          R.reject(
+            R.propEq('slug', this.config.home_page) && R.propEq('slug', document.slug),
+            all,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /**
+   * Returns a given number of documents sorted by most recently updated.
+   * @async
+   * @param {number} limit - The maximum number of documents to return.
+   * @param {string[]} fields - Unused: the fields to return on the documents.
+   * @returns {Promise} Promise object represents all matching documents.
+   * @memberof StorageProvider
+   */
   async getRecentDocuments(limit, fields) {
     debug('getRecentDocuments:', limit, fields);
     const all = await this.all();
@@ -83,17 +162,28 @@ class StorageProvider {
       limit,
       R.sort(
         (a, b) => (b.updateDate - a.updateDate),
-        R.reject(
-          document => !document.updateDate,
-          all,
+        R.filter(
+          document => document.updateDate,
+          R.reject(
+            R.propEq('slug', this.config.home_page),
+            all,
+          ),
         ),
       ),
     );
   }
 
+  /**
+   * Returns a given number of documents sorted by most visited.
+   * @async
+   * @param {number} limit - The maximum number of documents to return.
+   * @param {string[]} fields - Unused: the fields to return on the documents.
+   * @returns {Promise} Promise object represents all matching documents.
+   * @memberof StorageProvider
+   */
   async getPopularDocuments(limit, fields) {
     debug('getPopularDocuments:', limit, fields);
-    const visits = await this.readObject('visits');
+    const visits = await this.readObject(this.config.analytics_file, {});
     const all = await this.all();
     return R.take(
       limit,
@@ -101,12 +191,23 @@ class StorageProvider {
         (a, b) => visits[b.slug] - visits[a.slug],
         R.reject(
           document => (visits[document.slug] || 0) === 0,
-          all,
+          R.reject(
+            R.propEq('slug', this.config.home_page),
+            all,
+          ),
         ),
       ),
     );
   }
 
+  /**
+   * Returns a given number of randomly selected documents.
+   * @async
+   * @param {number} limit - The maximum number of documents to return.
+   * @param {string[]} fields - Unused: the fields to return on the documents.
+   * @returns {Promise} Promise object represents all matching documents.
+   * @memberof StorageProvider
+   */
   async getRandomDocuments(limit, fields) {
     debug('getRandomDocuments:', limit, fields);
     const all = await this.all();
@@ -114,11 +215,22 @@ class StorageProvider {
       limit,
       R.sort(
         (_a, _b) => Math.random() - Math.random(),
-        all,
+        R.reject(
+          R.propEq('slug', this.config.home_page),
+          all,
+        ),
       ),
     );
   }
 
+  /**
+   * Ensures a given set of fields are presenton on a given set of documents.
+   * @async
+   * @param {UttoriDocument[]} documents - The documents to ensure fields are set on.
+   * @param {string[]} _fields - Unused: the fields to return on the documents.
+   * @returns {Promise} Promise object represents all augmented documents.
+   * @memberof StorageProvider
+   */
   async augmentDocuments(documents, _fields) {
     debug('augmentDocuments:', documents, _fields);
     const all = await this.all();
@@ -134,24 +246,41 @@ class StorageProvider {
     );
   }
 
+  /**
+   * Returns a document for a given slug.
+   * @async
+   * @param {string} slug - The slug of the document to be returned.
+   * @returns {Promise} Promise object represents the returned UttoriDocument.
+   * @memberof StorageProvider
+   */
   async get(slug) {
     debug('get', slug);
     if (!slug) {
       debug('Cannot get document without slug.', slug);
       return undefined;
     }
+    const all = await this.all();
     const document = R.clone(
       R.find(
         R.propEq('slug', slug),
-      )(await this.all()),
+      )(all),
     );
 
     // Analytics: Update Page Views
-    if (document) await this.incrementObject('visits', slug, 1);
+    if (document) {
+      await this.incrementObject(this.config.analytics_file, slug, 1);
+    }
 
     return document;
   }
 
+  /**
+   * Returns the history of edits for a given slug.
+   * @async
+   * @param {string} slug - The slug of the document to get history for.
+   * @returns {Promise} Promise object represents the returned history.
+   * @memberof StorageProvider
+   */
   async getHistory(slug) {
     debug('getHistory', slug);
     if (!slug) {
@@ -162,6 +291,14 @@ class StorageProvider {
     return this.readFolder(folder);
   }
 
+  /**
+   * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
+   * @async
+   * @param {string} slug - The slug of the document to be returned.
+   * @param {number} revision - The unix timestamp of the history to be returned.
+   * @returns {Promise} Promise object represents the returned revision of the document.
+   * @memberof StorageProvider
+   */
   async getRevision(slug, revision) {
     debug('getRevision', slug, revision);
     if (!slug) {
@@ -180,6 +317,12 @@ class StorageProvider {
     return document;
   }
 
+  /**
+   * Saves a document to the file system.
+   * @async
+   * @param {UttoriDocument} document - The document to be added to the collection.
+   * @memberof StorageProvider
+   */
   async add(document) {
     debug('Add document:', document);
     const existing = await this.get(document.slug);
@@ -190,22 +333,37 @@ class StorageProvider {
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
       await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history));
-      await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
+      await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_document));
       await this.refresh();
     } else {
       debug('Cannot add, existing document!');
     }
   }
 
+  /**
+   * Updates a document and saves to the file system.
+   * @async
+   * @private
+   * @param {UttoriDocument} document - The document to be updated in the collection.
+   * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
+   * @memberof StorageProvider
+   */
   async updateValid(document, originalSlug) {
     document.updateDate = Date.now();
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
     await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history), originalSlug);
-    await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_article));
+    await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_document));
     await this.refresh();
   }
 
+  /**
+   * Updates a document and figures out how to save to the file system.
+   * @async
+   * @param {UttoriDocument} document - The document to be updated in the collection.
+   * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
+   * @memberof StorageProvider
+   */
   async update(document, originalSlug) {
     debug('Update:', document, originalSlug);
     const existing = await this.get(document.slug);
@@ -226,6 +384,12 @@ class StorageProvider {
     }
   }
 
+  /**
+   * Removes a document from the file system.
+   * @async
+   * @param {string} slug - The slug identifying the document.
+   * @memberof StorageProvider
+   */
   async delete(slug) {
     debug('delete:', slug);
     const existing = await this.get(slug);
@@ -239,6 +403,13 @@ class StorageProvider {
     }
   }
 
+  /**
+   * Saves a JSON object to the file system.
+   * @async
+   * @param {string} name - The name of the file to be saved.
+   * @param {string|Object} data - The JSON data for the file to be saved.
+   * @memberof StorageProvider
+   */
   async storeObject(name, data) {
     debug('storeObject:', name, data);
     if (typeof data !== 'string') {
@@ -247,6 +418,14 @@ class StorageProvider {
     await this.writeFile(this.config.data_dir, name, data);
   }
 
+  /**
+   * Updates a value in a JSON object on the file system.
+   * @async
+   * @param {string} name - The name of the file to be updated.
+   * @param {string} key - The key of the value to be updated.
+   * @param {Array|number|string|Object} value - The JSON data for the file to be saved.
+   * @memberof StorageProvider
+   */
   async updateObject(name, key, value) {
     debug('updateObject:', name, key, value);
     if (!name || !key) {
@@ -261,9 +440,18 @@ class StorageProvider {
     await this.storeObject(name, content);
   }
 
+  /**
+   * Increment a value by a given amount in a JSON object on the file system.
+   * @async
+   * @param {string} name - The name of the file to be updated.
+   * @param {string} key - The key of the value to be updated.
+   * @param {number} [amount=1] - The value to be added.
+   * @memberof StorageProvider
+   */
   async incrementObject(name, key, amount = 1) {
     debug('incrementObject:', name, key, amount);
-    if (!name || !key) {
+    if (!name || !key || amount === 0) {
+      debug('Missing parameter.');
       return;
     }
     const content = await this.readObject(name);
@@ -275,20 +463,27 @@ class StorageProvider {
     await this.storeObject(name, content);
   }
 
+  /**
+   * Decrement a value by a given amount in a JSON object on the file system.
+   * @async
+   * @param {string} name - The name of the file to be updated.
+   * @param {string} key - The key of the value to be updated.
+   * @param {number} [amount=1] - The value to be subtracted.
+   * @memberof StorageProvider
+   */
   async decrementObject(name, key, amount = 1) {
     debug('decrementObject:', name, key, amount);
-    if (!name || !key) {
-      return;
-    }
-    const content = await this.readObject(name);
-    if (!content) {
-      debug(`Object (${name}) has no content.`);
-      return;
-    }
-    content[key] = (parseInt(content[key], 10) || 0) - amount;
-    await this.storeObject(name, content);
+    await this.incrementObject(name, key, -1 * amount);
   }
 
+  /**
+   * Reads a JSON object on the file system.
+   * @async
+   * @param {string} name - The name of the file to be read.
+   * @param {Object} fallback - The backup value to use if no value is found.
+   * @returns {Promise<Object>} Promise object represents the returned object.
+   * @memberof StorageProvider
+   */
   async readObject(name, fallback) {
     debug('readObject:', name);
     if (!name) {
@@ -302,6 +497,15 @@ class StorageProvider {
     return content;
   }
 
+  /**
+   * Reads a specific value from a JSON object on the file system.
+   * @async
+   * @param {string} name - The name of the file to get the value from.
+   * @param {string} key - The key of the value to be returned.
+   * @param {Object} fallback - The backup value to use if no value is found.
+   * @returns {Promise<Object>} Promise object represents the returned object.
+   * @memberof StorageProvider
+   */
   async readObjectValue(name, key, fallback) {
     debug('readObjectValue:', name, key, fallback);
     if (!name || !key) {
@@ -312,7 +516,13 @@ class StorageProvider {
     return data[key] || fallback;
   }
 
-  // Format Specific
+  // Format Specific Methods
+
+  /**
+   * Reloads all documents from the file system into the cache.
+   * @async
+   * @memberof StorageProvider
+   */
   async refresh() {
     debug('refresh');
     let documents = [];
@@ -334,8 +544,15 @@ class StorageProvider {
     this.documents = R.reject(R.isNil, documents);
   }
 
+  /**
+   * Deletes a file from the file system.
+   * @async
+   * @param {string} folder - The folder of the file to be deleted.
+   * @param {string} name - The name of the file to be deleted.
+   * @memberof StorageProvider
+   */
   async deleteFile(folder, name) {
-    debug('Deleting:', folder, name);
+    debug('deleteFile:', folder, name);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
     debug('Deleting target:', target);
     try { await fs.unlink(target); } catch (error) {
@@ -344,6 +561,14 @@ class StorageProvider {
     }
   }
 
+  /**
+   * Reads a file from the file system.
+   * @async
+   * @param {string} folder - The folder of the file to be read.
+   * @param {string} name - The name of the file to be read.
+   * @returns {Object} - The parsed JSON file contents.
+   * @memberof StorageProvider
+   */
   async readFile(folder, name) {
     debug('Reading File:', folder, name);
     const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
@@ -360,6 +585,13 @@ class StorageProvider {
     return content;
   }
 
+  /**
+   * Reads a folder from the file system.
+   * @async
+   * @param {string} folder - The folder to be read.
+   * @returns {string[]} - The file paths found in the folder.
+   * @memberof StorageProvider
+   */
   async readFolder(folder) {
     debug('Reading Folder:', folder);
     if (await fs.exists(folder)) {
@@ -380,6 +612,14 @@ class StorageProvider {
     }
   }
 
+  /**
+ * Updates History for a given slug, renaming the store file and history folder as needed.
+ * @async
+ * @param {string} slug - The slug of the document to update history for.
+ * @param {string} content - The revision of the document to be saved.
+ * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
+ * @memberof StorageProvider
+ */
   async updateHistory(slug, content, originalSlug) {
     debug('updateHistory', slug, content, originalSlug);
     const original_folder = path.join(this.config.history_dir, sanitize(`${originalSlug}`));
