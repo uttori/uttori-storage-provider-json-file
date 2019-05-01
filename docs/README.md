@@ -10,8 +10,8 @@ Uttori storage provider using JSON files on disk.
 
 ## Install
 
-```
-$ npm install --save uttori-storage-provider-json-file
+```bash
+npm install --save uttori-storage-provider-json-file
 ```
 
 # Config
@@ -401,14 +401,15 @@ Updates History for a given slug, renaming the store file and history folder as 
 To run the test suite, first install the dependencies, then run `npm test`:
 
 ```bash
-$ npm install
-$ npm test
-$ DEBUG=Uttori* npm test
+npm install
+npm test
+DEBUG=Uttori* npm test
 ```
 
 ## Contributors
 
- - [Matthew Callis](https://github.com/MatthewCallis)
+* [Matthew Callis](https://github.com/MatthewCallis)
 
 ## License
-  [MIT](LICENSE)
+
+* [MIT](LICENSE)
