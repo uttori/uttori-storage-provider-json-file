@@ -35,7 +35,16 @@ npm install --save uttori-storage-provider-json-file
 <a name="StorageProvider"></a>
 
 ## StorageProvider
+Storage for Uttori documents using JSON files stored on the local file system.
+
 **Kind**: global class  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| config | <code>Object</code> | The configuration object. |
+| documents | <code>Array.&lt;UttoriDocument&gt;</code> | The collection of documents. |
+
 
 * [StorageProvider](#StorageProvider)
     * [new StorageProvider(config)](#new_StorageProvider_new)
@@ -69,18 +78,25 @@ npm install --save uttori-storage-provider-json-file
 <a name="new_StorageProvider_new"></a>
 
 ### new StorageProvider(config)
-Storage for Uttori documents using JSON files stored on the local file system.
+Creates an instance of StorageProvider.
 
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
 | config | <code>Object</code> |  | A configuration object. |
-| [config.extension] | <code>string</code> | <code>&quot;JSON&quot;</code> | The file extension to use for file, name of the employee. |
+| config.content_dir | <code>string</code> |  | The directory to store documents. |
+| config.history_dir | <code>string</code> |  | The directory to store document histories. |
+| config.data_dir | <code>string</code> |  | The directory to store objects. |
+| [config.extension] | <code>string</code> | <code>&quot;json&quot;</code> | The file extension to use for file, name of the employee. |
 | [config.analytics_file] | <code>string</code> | <code>&quot;visits&quot;</code> | The name of the file to store page views. |
 | [config.spaces_document] | <code>number</code> | <code></code> | The spaces parameter for JSON stringifying documents. |
 | [config.spaces_data] | <code>number</code> | <code></code> | The spaces parameter for JSON stringifying data. |
 | [config.spaces_history] | <code>number</code> | <code></code> | The spaces parameter for JSON stringifying history. |
 
+**Example** *(Init StorageProvider)*  
+```js
+const storageProvider = new StorageProvider({ content_dir: 'content', history_dir: 'history', data_dir: 'data', spaces_document: 2 });
+```
 <a name="StorageProvider+all"></a>
 
 ### storageProvider.all() ⇒ <code>Promise</code>
@@ -88,6 +104,11 @@ Returns all documents.
 
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
 **Returns**: <code>Promise</code> - Promise object represents all documents.  
+**Example**  
+```js
+storageProvider.all();
+➜ [{ slug: 'first-document', ... }, ...]
+```
 <a name="StorageProvider+tags"></a>
 
 ### storageProvider.tags() ⇒ <code>Promise</code>
@@ -95,6 +116,11 @@ Returns all unique tags.
 
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
 **Returns**: <code>Promise</code> - Promise object represents all documents.  
+**Example**  
+```js
+storageProvider.tags();
+➜ ['first-tag', ...]
+```
 <a name="StorageProvider+getTaggedDocuments"></a>
 
 ### storageProvider.getTaggedDocuments(tag, [limit], fields) ⇒ <code>Promise</code>

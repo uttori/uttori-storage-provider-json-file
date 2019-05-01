@@ -6,15 +6,26 @@ const path = require('path');
 
 /**
   * Storage for Uttori documents using JSON files stored on the local file system.
+  * @property {Object} config - The configuration object.
+  * @property {UttoriDocument[]} documents - The collection of documents.
+  * @example <caption>Init StorageProvider</caption>
+  * const storageProvider = new StorageProvider({ content_dir: 'content', history_dir: 'history', data_dir: 'data', spaces_document: 2 });
+  * @class
+  */
+class StorageProvider {
+/**
+  * Creates an instance of StorageProvider.
   * @param {Object} config - A configuration object.
-  * @param {string} [config.extension=JSON] - The file extension to use for file, name of the employee.
+  * @param {string} config.content_dir - The directory to store documents.
+  * @param {string} config.history_dir - The directory to store document histories.
+  * @param {string} config.data_dir - The directory to store objects.
+  * @param {string} [config.extension=json] - The file extension to use for file, name of the employee.
   * @param {string} [config.analytics_file=visits] - The name of the file to store page views.
   * @param {number} [config.spaces_document=null] - The spaces parameter for JSON stringifying documents.
   * @param {number} [config.spaces_data=null] - The spaces parameter for JSON stringifying data.
   * @param {number} [config.spaces_history=null] - The spaces parameter for JSON stringifying history.
-  * @class StorageProvider
+  * @constructor
   */
-class StorageProvider {
   constructor(config) {
     debug('constructor', config);
     if (!config) {
@@ -63,6 +74,9 @@ class StorageProvider {
    * Returns all documents.
    * @async
    * @returns {Promise} Promise object represents all documents.
+   * @example
+   * storageProvider.all();
+   * ➜ [{ slug: 'first-document', ... }, ...]
    * @memberof StorageProvider
    */
   async all() {
@@ -74,6 +88,9 @@ class StorageProvider {
    * Returns all unique tags.
    * @async
    * @returns {Promise} Promise object represents all documents.
+   * @example
+   * storageProvider.tags();
+   * ➜ ['first-tag', ...]
    * @memberof StorageProvider
    */
   async tags() {
