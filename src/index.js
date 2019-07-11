@@ -1,8 +1,11 @@
+// TODO start replacing specific calls (ie getRandom, getPopular) with query calls
+// TODO replace all external specific calls with queries in wiki
 const debug = require('debug')('Uttori.StorageProvider.JSON');
 const fs = require('fs-extra');
 const sanitize = require('sanitize-filename');
 const R = require('ramda');
 const path = require('path');
+const FileUtility = require('./file-utility');
 
 /**
   * Storage for Uttori documents using JSON files stored on the local file system.
@@ -55,17 +58,7 @@ class StorageProvider {
     };
 
     this.documents = [];
-
-    /* istanbul ignore next */
-    try {
-      fs.ensureDirSync(this.config.content_dir, { recursive: true });
-      fs.ensureDirSync(this.config.history_dir, { recursive: true });
-      fs.ensureDirSync(this.config.data_dir, { recursive: true });
-    } catch (error) {
-      if (error.code !== 'EEXIST') {
-        debug('Error creting directories:', error);
-      }
-    }
+    FileUtility.ensureDirectoriesSync(this.config);
 
     this.refresh();
   }
@@ -105,6 +98,20 @@ class StorageProvider {
   }
 
   /**
+   * Returns all documents matching a given query.
+   * @async
+   * @param {string} query - The conditions on which documents should be returned.
+   * @returns {Promise} Promise object represents all matching documents.
+   * @memberof StorageProvider
+   */
+  // TODO Use new tools and migrate to using this fully
+  async getQuery(query) {
+    debug('getQuery:', query);
+    const all = await this.all();
+    return all;
+  }
+
+  /**
    * Returns all documents matching a given tag.
    * @async
    * @param {string} tag - The tag to compare against other documents.
@@ -112,7 +119,9 @@ class StorageProvider {
    * @param {string[]} fields - Unused: the fields to return on the documents.
    * @returns {Promise} Promise object represents all matching documents.
    * @memberof StorageProvider
+   * SELECT {fields} FROM documents WHERE 'tags' INCLUDES {tag} ORDER BT title ASC LIMIT {limit}
    */
+  // TODO replace with getQuery
   async getTaggedDocuments(tag, limit = 1000, fields) {
     debug('getTaggedDocuments:', tag, fields);
     const all = await this.all();
@@ -139,7 +148,9 @@ class StorageProvider {
    * @param {string[]} fields - Unused: the fields to return on the documents.
    * @returns {Promise} Promise object represents all matching documents.
    * @memberof StorageProvider
+   * SELECT {fields} FROM documents WHERE OVERLAP('tags', [{tags}]) LIMIT {limit}
    */
+  // TODO replace with getQuery
   async getRelatedDocuments(document, limit, fields) {
     debug('getTaggedDocuments:', document, limit, fields);
     if (!document) {
@@ -172,6 +183,7 @@ class StorageProvider {
    * @returns {Promise} Promise object represents all matching documents.
    * @memberof StorageProvider
    */
+  // TODO replace with getQuery
   async getRecentDocuments(limit, fields) {
     debug('getRecentDocuments:', limit, fields);
     const all = await this.all();
@@ -198,6 +210,7 @@ class StorageProvider {
    * @returns {Promise} Promise object represents all matching documents.
    * @memberof StorageProvider
    */
+  // TODO move to an analytics service
   async getPopularDocuments(limit, fields) {
     debug('getPopularDocuments:', limit, fields);
     const visits = await this.readObject(this.config.analytics_file, {});
@@ -225,6 +238,7 @@ class StorageProvider {
    * @returns {Promise} Promise object represents all matching documents.
    * @memberof StorageProvider
    */
+  // TODO replace with getQuery
   async getRandomDocuments(limit, fields) {
     debug('getRandomDocuments:', limit, fields);
     const all = await this.all();
@@ -248,6 +262,7 @@ class StorageProvider {
    * @returns {Promise} Promise object represents all augmented documents.
    * @memberof StorageProvider
    */
+  // TODO replace with getQuery, just fetch based on slug
   async augmentDocuments(documents, _fields) {
     debug('augmentDocuments:', documents, _fields);
     const all = await this.all();
@@ -305,7 +320,7 @@ class StorageProvider {
       return undefined;
     }
     const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
-    return this.readFolder(folder);
+    return FileUtility.readFolder(folder);
   }
 
   /**
@@ -327,7 +342,7 @@ class StorageProvider {
       return undefined;
     }
     const folder = path.join(this.config.history_dir, sanitize(`${slug}`));
-    const document = await this.readFile(folder, revision);
+    const document = await FileUtility.readFile(this.config, folder, revision);
     if (!document) {
       debug(`Document history not found for "${slug}", with revision "${revision}"`);
     }
@@ -350,7 +365,7 @@ class StorageProvider {
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
       await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history));
-      await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_document));
+      await FileUtility.writeFile(this.config, this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_document));
       await this.refresh();
     } else {
       debug('Cannot add, existing document!');
@@ -370,7 +385,7 @@ class StorageProvider {
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
     await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history), originalSlug);
-    await this.writeFile(this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_document));
+    await FileUtility.writeFile(this.config, this.config.content_dir, document.slug, JSON.stringify(document, null, this.config.spaces_document));
     await this.refresh();
   }
 
@@ -393,7 +408,7 @@ class StorageProvider {
       await this.updateValid(document, originalSlug);
     } else if (!existing && original) {
       debug('Updating document and updating slug:', document);
-      await this.deleteFile(this.config.content_dir, originalSlug);
+      await FileUtility.deleteFile(this.config, this.config.content_dir, originalSlug);
       await this.updateValid(document, originalSlug);
     } else {
       debug('No document found to update, adding document:', document);
@@ -413,7 +428,7 @@ class StorageProvider {
     if (existing) {
       debug('Document found, deleting document:', slug);
       await this.updateHistory(existing.slug, JSON.stringify(existing, null, this.config.spaces_history));
-      await this.deleteFile(this.config.content_dir, slug);
+      await FileUtility.deleteFile(this.config, this.config.content_dir, slug);
       await this.refresh();
     } else {
       debug('Document not found:', slug);
@@ -432,7 +447,7 @@ class StorageProvider {
     if (typeof data !== 'string') {
       data = JSON.stringify(data, null, this.config.spaces_data);
     }
-    await this.writeFile(this.config.data_dir, name, data);
+    await FileUtility.writeFile(this.config, this.config.data_dir, name, data);
   }
 
   /**
@@ -506,7 +521,7 @@ class StorageProvider {
     if (!name) {
       return fallback;
     }
-    const content = await this.readFile(this.config.data_dir, name);
+    const content = await FileUtility.readFile(this.config, this.config.data_dir, name);
     if (!content) {
       debug(`Object (${name}) has no content.`);
       return fallback;
@@ -550,7 +565,7 @@ class StorageProvider {
         fileNames,
       );
       documents = R.map(
-        name => this.readFile(this.config.content_dir, path.parse(name).name),
+        name => FileUtility.readFile(this.config, this.config.content_dir, path.parse(name).name),
         validFiles,
       );
     } catch (error) {
@@ -559,74 +574,6 @@ class StorageProvider {
     }
 
     this.documents = R.reject(R.isNil, documents);
-  }
-
-  /**
-   * Deletes a file from the file system.
-   * @async
-   * @param {string} folder - The folder of the file to be deleted.
-   * @param {string} name - The name of the file to be deleted.
-   * @memberof StorageProvider
-   */
-  async deleteFile(folder, name) {
-    debug('deleteFile:', folder, name);
-    const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
-    debug('Deleting target:', target);
-    try { await fs.unlink(target); } catch (error) {
-      /* istanbul ignore next */
-      debug('Error deleting file:', target, error);
-    }
-  }
-
-  /**
-   * Reads a file from the file system.
-   * @async
-   * @param {string} folder - The folder of the file to be read.
-   * @param {string} name - The name of the file to be read.
-   * @returns {Object} - The parsed JSON file contents.
-   * @memberof StorageProvider
-   */
-  async readFile(folder, name) {
-    debug('Reading File:', folder, name);
-    const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
-    debug('Reading target:', target);
-    let content;
-    try { content = await fs.readFile(target, 'utf8'); } catch (error) {
-      /* istanbul ignore next */
-      debug('Error reading file:', target, error);
-    }
-    try { content = JSON.parse(content); } catch (error) {
-      /* istanbul ignore next */
-      debug('Error parsing JSON:', content, error);
-    }
-    return content;
-  }
-
-  /**
-   * Reads a folder from the file system.
-   * @async
-   * @param {string} folder - The folder to be read.
-   * @returns {string[]} - The file paths found in the folder.
-   * @memberof StorageProvider
-   */
-  async readFolder(folder) {
-    debug('Reading Folder:', folder);
-    if (await fs.exists(folder)) {
-      const content = await fs.readdir(folder);
-      return content.map(file => path.parse(file).name);
-    }
-    debug('Folder not found!');
-    return [];
-  }
-
-  async writeFile(folder, name, content) {
-    debug('writeFile:', folder, name, content);
-    const target = `${folder}/${sanitize(`${name}`)}.${this.config.extension}`;
-    debug('Writing target:', target);
-    try { await fs.writeFile(target, content, 'utf8'); } catch (error) {
-      /* istanbul ignore next */
-      debug('Error writing file:', target, content, error);
-    }
   }
 
   /**
@@ -665,7 +612,7 @@ class StorageProvider {
       }
     }
 
-    await this.writeFile(new_folder, Date.now(), content);
+    await FileUtility.writeFile(this.config, new_folder, Date.now(), content);
   }
 }
 
