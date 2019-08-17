@@ -556,7 +556,7 @@ test('augmentDocuments(documents, _fields): returns all matching documents', asy
   await s.add(empty);
 
   const search_results = [{ slug: 'example-title' }, { slug: 'fake' }];
-  const includes = search_results.map(result => `'${result.slug}'`).join(',');
+  const includes = search_results.map((result) => `'${result.slug}'`).join(',');
   const query = `SELECT * FROM documents WHERE slug INCLUDES (${includes}) ORDER BY title ASC LIMIT 100`;
   const output = await s.getQuery(query);
   t.deepEqual(output, [example, fake]);
