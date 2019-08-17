@@ -100,11 +100,20 @@ test('getTaggedDocuments(tag, limit, fields): returns documents with the given t
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
-  let output = await s.getTaggedDocuments('Example Tag');
+
+  let tag = 'Example Tag';
+  let query = `SELECT 'slug', 'title', 'tags', 'updateDate' FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
+  let output = await s.getQuery(query);
   t.deepEqual(output, [example, fake]);
-  output = await s.getTaggedDocuments('Fake');
-  t.deepEqual(output, [empty, fake]);
-  output = await s.getTaggedDocuments('No Tag');
+
+  tag = 'Fake';
+  query = `SELECT 'slug', 'title', 'tags', 'updateDate' FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
+  output = await s.getQuery(query);
+  t.deepEqual(output, [fake, empty]);
+
+  tag = 'No Tag';
+  query = `SELECT 'slug', 'title', 'tags', 'updateDate' FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
+  output = await s.getQuery(query);
   t.deepEqual(output, []);
 });
 
@@ -113,9 +122,20 @@ test('getRecentDocuments(limit, fields): returns the requested number of the mos
   await s.add(fake);
   await s.add(empty);
 
-  t.deepEqual(await s.getRecentDocuments(1), [empty]);
-  t.deepEqual(await s.getRecentDocuments(2), [empty, fake]);
-  t.deepEqual(await s.getRecentDocuments(3), [empty, fake, example]);
+  let limit = 1;
+  let query = `SELECT * FROM documents WHERE 'slug' != '' ORDER BY updateDate DESC LIMIT ${limit}`;
+  let output = await s.getQuery(query);
+  t.deepEqual(output, [empty]);
+
+  limit = 2;
+  query = `SELECT * FROM documents WHERE 'slug' != '' ORDER BY updateDate DESC LIMIT ${limit}`;
+  output = await s.getQuery(query);
+  t.deepEqual(output, [empty, fake]);
+
+  limit = 3;
+  query = `SELECT * FROM documents WHERE 'slug' != '' ORDER BY updateDate DESC LIMIT ${limit}`;
+  output = await s.getQuery(query);
+  t.deepEqual(output, [empty, fake, example]);
 });
 
 test('getRelatedDocuments(document, limit, fields): returns the requested number of the related documents', async (t) => {
@@ -124,59 +144,29 @@ test('getRelatedDocuments(document, limit, fields): returns the requested number
   const tagged = { ...empty, tags: ['Example Tag'] };
   await s.add(tagged);
 
-  const output = await s.getRelatedDocuments(example, 2);
+  const query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${example.tags.join(',')}') AND slug != ${example.slug} ORDER BY title DESC LIMIT 2`;
+  const output = await s.getQuery(query);
   t.deepEqual(output, [tagged, fake]);
 });
 
-test('getRelatedDocuments(document, limit, fields): does not throw without document', async (t) => {
-  const s = new StorageProvider(config);
-  await s.add(fake);
-  await s.add(empty);
-  t.notThrows(async () => {
-    await s.getRelatedDocuments(null, 2);
-  });
-});
-
-test('getRelatedDocuments(document, limit, fields): does not throw without document tags', async (t) => {
-  const s = new StorageProvider(config);
-  await s.add(fake);
-  await s.add(empty);
-  t.notThrows(async () => {
-    await s.getRelatedDocuments({ slug: 'missing' }, 2);
-  });
-});
-
-test('getPopularDocuments(limit, fields): returns the requested number of popular documents', async (t) => {
-  let output;
-  const s = new StorageProvider(config);
-  await s.add(fake);
-  await s.add(empty);
-
-  await s.storeObject('visits', { 'example-title': 0 });
-  output = await s.getPopularDocuments(3);
-  t.deepEqual(output, []);
-
-  await s.incrementObject('visits', 'example-title');
-  output = await s.getPopularDocuments(3);
-  t.deepEqual(output, [example]);
-
-  await s.incrementObject('visits', 'example-title');
-  await s.incrementObject('visits', 'fake');
-  output = await s.getPopularDocuments(3);
-  t.deepEqual(output, [example, fake]);
-});
-
 test('getRandomDocuments(limit, fields): returns the requested number of random documents', async (t) => {
-  let output;
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
 
-  output = await s.getRandomDocuments(1);
+  let limit = 1;
+  let query = `SELECT * FROM documents WHERE 'slug' != '' ORDER BY RANDOM LIMIT ${limit}`;
+  let output = await s.getQuery(query);
   t.is(output.length, 1);
-  output = await s.getRandomDocuments(2);
+
+  limit = 2;
+  query = `SELECT * FROM documents WHERE 'slug' != '' ORDER BY RANDOM LIMIT ${limit}`;
+  output = await s.getQuery(query);
   t.is(output.length, 2);
-  output = await s.getRandomDocuments(3);
+
+  limit = 3;
+  query = `SELECT * FROM documents WHERE 'slug' != '' ORDER BY RANDOM LIMIT ${limit}`;
+  output = await s.getQuery(query);
   t.is(output.length, 3);
 });
 
@@ -560,220 +550,14 @@ test('delete(document): does nothing when no file is found', async (t) => {
   t.is(all.length, 2);
 });
 
-test('storeObject(fileName, object): writes the file to disk as object', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { test: true };
-  await s.storeObject('test', data);
-  const output = await s.readObject('test');
-  t.deepEqual(output, data);
-});
-
-test('storeObject(fileName, object): writes the file to disk as string', async (t) => {
-  const s = new StorageProvider(config);
-  const data = '{ test: true }';
-  await s.storeObject('test', data);
-  const output = await s.readObject('test');
-  t.deepEqual(output, data);
-});
-
-test('updateObject(name, key, value): update an object key with a given value', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.updateObject('test', 'amount', 10);
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 10);
-});
-
-test('updateObject(name, key, value): does nothing when no name is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.updateObject('', 'amount', 10);
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('updateObject(name, key, value): does nothing when no key is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.updateObject('test', '', 10);
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('updateObject(name, key, value): creates content when missing', async (t) => {
-  const s = new StorageProvider(config);
-  t.deepEqual(await s.readObjectValue('missing', 'amount', 'X'), 'X');
-  await s.updateObject('test', 'amount', 2);
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('decrementObject(name, key, amount = 1): decrements an object key value by a given amount', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.decrementObject('test', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 1);
-});
-
-test('decrementObject(name, key, amount = 1): decrements an object key value by a given amount from 0 if the value is not already set', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.decrementObject('test', 'missing');
-  const output = await s.readObjectValue('test', 'missing', 'X');
-  t.deepEqual(output, -1);
-});
-
-test('decrementObject(name, key, amount = 1): does nothing when no name is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.decrementObject('', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('decrementObject(name, key, amount = 1): does nothing when no key is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.decrementObject('test', '');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('decrementObject(name, key, amount = 1): does nothing when no content is found with a missing key', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.decrementObject('test', '');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('decrementObject(name, key, amount = 1): does nothing when no content is found with a missing name', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.decrementObject('missing', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('incrementObject(name, key, amount = 1): increments an object key value by a given amount', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.incrementObject('test', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 3);
-});
-
-test('incrementObject(name, key, amount = 1): increments an object key value by a given amount from 0 if the value is not already set', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.incrementObject('test', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 3);
-});
-
-test('incrementObject(name, key, amount = 1): does nothing when no name is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.incrementObject('', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('incrementObject(name, key, amount = 1): does nothing when no key is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.incrementObject('test', '');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('incrementObject(name, key, amount = 1): does nothing when no content is found with a missing key', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.incrementObject('test', '');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('incrementObject(name, key, amount = 1): does nothing when no content is found with a missing name', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { amount: 2 };
-  await s.storeObject('test', data);
-  await s.incrementObject('missing', 'amount');
-  const output = await s.readObjectValue('test', 'amount', 'X');
-  t.deepEqual(output, 2);
-});
-
-test('readObject(name, fallback): returns an object found by name', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { test: true };
-  await s.storeObject('test', data);
-  const output = await s.readObject('test');
-  t.deepEqual(output, data);
-});
-
-test('readObject(name, fallback): returns fallback when no name is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const output = await s.readObject('', '?');
-  t.is(output, '?');
-});
-
-test('readObject(name, fallback): returns fallback when no content is returned', async (t) => {
-  const s = new StorageProvider(config);
-  const output = await s.readObject('missing', '?');
-  t.is(output, '?');
-});
-
-test('readObjectValue(name, key, fallback): returns a value from an object', async (t) => {
-  const s = new StorageProvider(config);
-  const pi = 3.1415;
-  const data = { test: true, pi };
-  await s.storeObject('test', data);
-  const value = await s.readObjectValue('test', 'pi', 4);
-  t.deepEqual(value, pi);
-});
-
-test('readObjectValue(name, key, fallback): returns a fallback value from an object when no name is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { test: true };
-  await s.storeObject('test', data);
-  const output = await s.readObjectValue('', 'pi', 4);
-  t.deepEqual(output, 4);
-});
-
-test('readObjectValue(name, key, fallback): returns a fallback value from an object when no key is provided', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { test: true };
-  await s.storeObject('test', data);
-  const output = await s.readObjectValue('test', '', 4);
-  t.deepEqual(output, 4);
-});
-
-test('readObjectValue(name, key, fallback): returns a fallback value from an object when no key matches', async (t) => {
-  const s = new StorageProvider(config);
-  const data = { test: true };
-  await s.storeObject('test', data);
-  const output = await s.readObjectValue('test', 'pi', 4);
-  t.deepEqual(output, 4);
-});
-
 test('augmentDocuments(documents, _fields): returns all matching documents', async (t) => {
   const s = new StorageProvider(config);
-  const results = await s.augmentDocuments([{ slug: 'example-title' }]);
-  t.deepEqual(results, [example]);
+  await s.add(fake);
+  await s.add(empty);
+
+  const search_results = [{ slug: 'example-title' }, { slug: 'fake' }];
+  const includes = search_results.map(result => `'${result.slug}'`).join(',');
+  const query = `SELECT * FROM documents WHERE slug INCLUDES (${includes}) ORDER BY title ASC LIMIT 100`;
+  const output = await s.getQuery(query);
+  t.deepEqual(output, [example, fake]);
 });
