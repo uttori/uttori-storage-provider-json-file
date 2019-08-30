@@ -1,6 +1,6 @@
 {
   "name": "uttori-storage-provider-json-file",
-  "version": "2.2.3",
+  "version": "2.2.4-pre",
   "description": "Uttori storage provider using JSON files on disk.",
   "author": "Matthew Callis <matthew.callis@gmail.com>",
   "contributors": [],
