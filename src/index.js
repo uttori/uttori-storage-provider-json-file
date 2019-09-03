@@ -11,7 +11,7 @@ const { process } = require('./query-tools');
   * @property {Object} config - The configuration object.
   * @property {UttoriDocument[]} documents - The collection of documents.
   * @example <caption>Init StorageProvider</caption>
-  * const storageProvider = new StorageProvider({ content_dir: 'content', history_dir: 'history', data_dir: 'data', spaces_document: 2 });
+  * const storageProvider = new StorageProvider({ content_dir: 'content', history_dir: 'history', spaces_document: 2 });
   * @class
   */
 class StorageProvider {
@@ -20,7 +20,6 @@ class StorageProvider {
   * @param {Object} config - A configuration object.
   * @param {string} config.content_dir - The directory to store documents.
   * @param {string} config.history_dir - The directory to store document histories.
-  * @param {string} config.data_dir - The directory to store objects.
   * @param {string} [config.extension=json] - The file extension to use for file, name of the employee.
   * @param {number} [config.spaces_document=null] - The spaces parameter for JSON stringifying documents.
   * @param {number} [config.spaces_data=null] - The spaces parameter for JSON stringifying data.
@@ -41,10 +40,6 @@ class StorageProvider {
       debug('No history directory provided.');
       throw new Error('No history directory provided.');
     }
-    if (!config.data_dir) {
-      debug('No data directory provided.');
-      throw new Error('No data directory provided.');
-    }
 
     this.config = {
       extension: 'json',
@@ -57,7 +52,6 @@ class StorageProvider {
     this.documents = [];
     FileUtility.ensureDirectorySync(this.config.content_dir);
     FileUtility.ensureDirectorySync(this.config.history_dir);
-    FileUtility.ensureDirectorySync(this.config.data_dir);
 
     this.refresh();
   }

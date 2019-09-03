@@ -6,10 +6,8 @@ const StorageProvider = require('./../src');
 const config = {
   content_dir: 'test/site/content',
   history_dir: 'test/site/content/history',
-  data_dir: 'test/site/data',
   extension: 'json',
   spaces_document: null,
-  spaces_data: null,
   spaces_history: null,
 };
 
@@ -53,9 +51,7 @@ const fake = {
 test.beforeEach(async () => {
   await fs.remove('test/site');
   await fs.ensureDir('test/site/content/history', { recursive: true });
-  await fs.ensureDir('test/site/data', { recursive: true });
   await fs.writeFile('test/site/content/example-title.json', JSON.stringify(example));
-  await fs.writeFile('test/site/data/visits.json', '{"example-title":2,"demo-title":0,"fake-title":1}');
 });
 
 test.afterEach.always(async () => {
@@ -71,15 +67,11 @@ test('constructor(config): throws an error when missing config', (t) => {
 });
 
 test('constructor(config): throws an error when missing config content directory', (t) => {
-  t.throws(() => new StorageProvider({ history_dir: '_', data_dir: '_' }));
+  t.throws(() => new StorageProvider({ history_dir: '_' }));
 });
 
 test('constructor(config): throws an error when missing config history directory', (t) => {
-  t.throws(() => new StorageProvider({ content_dir: '_', data_dir: '_' }));
-});
-
-test('constructor(config): throws an error when missing config data directory', (t) => {
-  t.throws(() => new StorageProvider({ content_dir: '_', history_dir: '_' }));
+  t.throws(() => new StorageProvider({ content_dir: '_' }));
 });
 
 test('all(): returns all the documents', async (t) => {
