@@ -22,7 +22,6 @@ class StorageProvider {
   * @param {string} config.history_dir - The directory to store document histories.
   * @param {string} [config.extension=json] - The file extension to use for file, name of the employee.
   * @param {number} [config.spaces_document=null] - The spaces parameter for JSON stringifying documents.
-  * @param {number} [config.spaces_data=null] - The spaces parameter for JSON stringifying data.
   * @param {number} [config.spaces_history=null] - The spaces parameter for JSON stringifying history.
   * @constructor
   */
@@ -44,7 +43,6 @@ class StorageProvider {
     this.config = {
       extension: 'json',
       spaces_document: null,
-      spaces_data: null,
       spaces_history: null,
       ...config,
     };
