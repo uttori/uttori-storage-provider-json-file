@@ -9,6 +9,7 @@
   "homepage": "https://github.com/uttori/uttori-storage-provider-json-file",
   "keywords": [
     "uttori",
+    "storage",
     "json"
   ],
   "engines": {
@@ -19,48 +20,60 @@
     "fs-extra": "^8.1.0",
     "ramda": "^0.26.1",
     "sanitize-filename": "^1.6.3",
-    "uttori-utilities": "^1.2.0"
+    "uttori-utilities": "^2.1.0"
   },
   "devDependencies": {
-    "ava": "^2.3.0",
-    "coveralls": "^3.0.6",
-    "docsify-cli": "^4.3.0",
-    "eslint": "^6.3.0",
+    "ava": "^3.1.0",
+    "coveralls": "^3.0.9",
+    "docsify-cli": "^4.4.0",
+    "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
-    "eslint-plugin-ava": "^8.0.0",
-    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-ava": "^10.0.0",
+    "eslint-plugin-import": "^2.20.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-no-inferred-method-name": "^1.0.2",
-    "eslint-plugin-node": "^9.2.0",
-    "eslint-plugin-optimize-regex": "^1.1.6",
+    "eslint-plugin-no-inferred-method-name": "^2.0.0",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-optimize-regex": "^1.1.7",
     "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.14.3",
-    "eslint-plugin-react-hooks": "^2.0.1",
+    "eslint-plugin-react": "^7.18.0",
+    "eslint-plugin-react-hooks": "^2.3.0",
     "eslint-plugin-security": "^1.4.0",
-    "eslint-plugin-unicorn": "^10.0.0",
+    "eslint-plugin-unicorn": "^15.0.1",
     "eslint-plugin-xss": "^0.1.9",
-    "jsdoc-to-markdown": "^5.0.1",
-    "nyc": "^14.1.1",
-    "sinon": "^7.4.2",
+    "jsdoc-to-markdown": "^5.0.3",
+    "nyc": "^15.0.0",
+    "sinon": "^8.1.1",
     "supertest": "^4.0.2",
     "uttori-document": "^1.4.0"
   },
   "files": [
-    "src/"
+    "src/*"
   ],
-  "main": "./src/index.js",
+  "main": "src/index.js",
+  "ava": {
+    "files": [
+      "test/**/*.test.js"
+    ],
+    "ignoredByWatcher": [
+      "!src/**/*.js"
+    ],
+    "concurrency": 1,
+    "failFast": false,
+    "tap": false,
+    "verbose": true
+  },
   "nyc": {
     "cache": true,
     "all": true,
-    "check-coverage": true,
+    "check-coverage": false,
     "include": [
-      "src/"
+      "src/**/*.js"
     ],
     "exclude": []
   },
   "scripts": {
     "docs": "jsdoc2md --private --example-lang js --template README.hbs src/index.js > README.md; cp README.md docs/README.md",
-    "docs-serve": "docsify serve ./docs",
+    "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
     "report": "nyc report --reporter=html",
     "test": "NODE_ENV=test nyc ava --serial --concurrency=1",
