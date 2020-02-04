@@ -186,6 +186,12 @@ test('getHistory(slug): returns undefined when missing a slug', async (t) => {
   t.is(history, undefined);
 });
 
+test('getHistory(slug): returns an empty array when a slug is not found', async (t) => {
+  const s = new StorageProvider(config);
+  t.is(await s.getHistory(''), undefined);
+  t.deepEqual(await s.getHistory('missing'), []);
+});
+
 test('getHistory(slug): returns an array of the history revisions', async (t) => {
   let all;
   let history;
@@ -319,6 +325,17 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   t.is(revision.title, 'second file-v4');
 });
 
+test('add(document): cannot add without a document or a slug', async (t) => {
+  let all;
+  const s = new StorageProvider(config);
+  await s.add();
+  all = await s.all();
+  t.is(all.length, 1);
+  s.add({});
+  all = await s.all();
+  t.is(all.length, 1);
+});
+
 test('add(document): creates a new document', async (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
@@ -371,6 +388,20 @@ test('add(document): does not create a document with the same slug', async (t) =
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
+});
+
+test('update(document, originalSlug): does not update without a document or slug', async (t) => {
+  let all;
+  const s = new StorageProvider(config);
+  await s.update(undefined, 'second-file');
+  all = await s.all();
+  t.is(all.length, 1);
+  t.is(all[0].title, example.title);
+
+  await s.update({ title: 'New' }, 'second-file');
+  all = await s.all();
+  t.is(all.length, 1);
+  t.is(all[0].title, example.title);
 });
 
 test('update(document, originalSlug): updates the file on disk', async (t) => {

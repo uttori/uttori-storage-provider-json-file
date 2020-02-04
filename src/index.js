@@ -121,7 +121,10 @@ class StorageProvider {
         R.propEq('slug', slug),
       )(all),
     );
-
+    if (!document) {
+      debug('No document found!');
+      return undefined;
+    }
     return document;
   }
 
@@ -175,7 +178,12 @@ class StorageProvider {
    * @memberof StorageProvider
    */
   async add(document) {
-    debug('Add document:', document);
+    debug('add');
+    if (!document || !document.slug) {
+      debug('Cannot add, missing slug.');
+      return;
+    }
+    debug('add:', document.slug);
     const existing = await this.get(document.slug);
     if (!existing) {
       debug('Adding document.', document);
@@ -200,6 +208,7 @@ class StorageProvider {
    * @memberof StorageProvider
    */
   async updateValid(document, originalSlug) {
+    debug('updateValid');
     document.updateDate = Date.now();
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
@@ -217,20 +226,24 @@ class StorageProvider {
    */
   async update(document, originalSlug) {
     debug('Update:', document, originalSlug);
+    if (!document || !document.slug) {
+      debug('Cannot update, missing slug.');
+      return;
+    }
+    debug('update:', document.slug, originalSlug);
     const existing = await this.get(document.slug);
     const original = await this.get(originalSlug);
-
     if (existing && original && original.slug !== existing.slug) {
-      debug('Cannot update, existing document!');
+      debug(`Cannot update, existing document with slug "${originalSlug}"!`);
     } else if (existing && original && original.slug === existing.slug) {
-      debug('Updating document:', document);
+      debug(`Updating document with slug "${document.slug}"`);
       await this.updateValid(document, originalSlug);
     } else if (!existing && original) {
-      debug('Updating document and updating slug:', document);
+      debug(`Updating document with slug from "${originalSlug}" to "${document.slug}"`);
       await FileUtility.deleteFile(this.config.content_dir, originalSlug, this.config.extension);
       await this.updateValid(document, originalSlug);
     } else {
-      debug('No document found to update, adding document:', document);
+      debug(`No document found to update with slug "${originalSlug}", adding document with slug "${document.slug}"`);
       await this.add(document);
     }
   }
@@ -297,7 +310,7 @@ class StorageProvider {
 
     // Rename old history folder if one existed
     if (slug && originalSlug && originalSlug !== slug) {
-      debug('Updating History...');
+      debug(`Updating history from "${originalSlug}" to "${slug}"`);
       /* istanbul ignore else */
       if (await fs.exists(original_folder)) {
         debug(`Renaming history folder from "${original_folder}" to "${new_folder}"`);
