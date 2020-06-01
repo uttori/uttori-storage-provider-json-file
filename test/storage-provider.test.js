@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const test = require('ava');
 const Document = require('uttori-document');
-const StorageProvider = require('./../src');
+const { StorageProvider } = require('../src');
 
 const config = {
   content_dir: 'test/site/content',
