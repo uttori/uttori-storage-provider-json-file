@@ -72,7 +72,7 @@
     "exclude": []
   },
   "scripts": {
-    "docs": "jsdoc2md --private --example-lang js --template README.hbs src/index.js > README.md; cp README.md docs/README.md",
+    "docs": "jsdoc2md --private --example-lang js --template README.hbs src/storage-provider.js > README.md; cp README.md docs/README.md; jsdoc2md --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --private --example-lang js src/query-tools.js > docs/query-tools.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
     "report": "nyc report --reporter=html",

@@ -29,8 +29,8 @@ class Plugin {
    */
   static defaultConfig() {
     return {
-      content_dir: '',
-      history_dir: '',
+      content_directory: '',
+      history_directory: '',
       extension: 'json',
       spaces_document: undefined,
       spaces_history: undefined,
@@ -88,7 +88,7 @@ class Plugin {
       throw new Error("Missing events to listen to for in 'config.events'.");
     }
 
-    const storage = new StorageProvider();
+    const storage = new StorageProvider(config);
     Object.keys(config.events).forEach((method) => {
       config.events[method].forEach((event) => context.hooks.on(event, storage[method]));
     });

@@ -6,7 +6,9 @@
 
 # Uttori Storage Provider - JSON File
 
-Uttori storage provider using JSON files on disk.
+Uttori Storage Provider using JSON files on disk.
+
+This repo exports both a Uttori Plugin compliant `Plugin` class as well as the underlying `StorageProvider` class.
 
 ## Install
 
@@ -18,15 +20,57 @@ npm install --save uttori-storage-provider-json-file
 
 ```js
 {
-  content_dir: '',
-  history_dir: '',
+  content_directory: '',
+  history_directory: '',
   extension: 'json',
   spaces_document: null,
   spaces_history: null,
+  // Registration Events
+  events: {
+    add: ['storage-add'],
+    delete: ['storage-delete'],
+    get: ['storage-get'],
+    getHistory: ['storage-get-history'],
+    getRevision: ['storage-get-revision'],
+    query: ['storage-query'],
+    update: ['storage-update'],
+    validateConfig: ['validate-config'],
+  },
 }
 ```
 
 * * *
+
+# Example
+
+```js
+const { StorageProvider } = require('uttori-storage-provider-json-file');
+const s = new StorageProvider({
+  content_directory: 'example/content',
+  history_directory: 'example/history',
+  extension: 'json',
+  spaces_document: null,
+  spaces_history: null,
+});
+await s.add({
+  title: 'Example Title',
+  slug: 'example-title',
+  content: '## Example Title',
+  html: '',
+  updateDate: 1459310452001,
+  createDate: 1459310452001,
+  tags: ['Example Tag'],
+  customData: {
+    keyA: 'value-a',
+    keyB: 'value-b',
+    keyC: 'value-c',
+  },
+});
+const results = await s.getQuery('SELECT tags FROM documents WHERE slug IS_NOT_NULL ORDER BY slug ASC LIMIT 1');
+➜  results === [
+      { tags: ['Example Tag'] },
+    ]
+```
 
 # API Reference
 

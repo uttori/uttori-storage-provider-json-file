@@ -1,11 +1,12 @@
 const fs = require('fs-extra');
 const test = require('ava');
+const R = require('ramda');
 const Document = require('uttori-document');
 const { StorageProvider } = require('../src');
 
 const config = {
-  content_dir: 'test/site/content',
-  history_dir: 'test/site/content/history',
+  content_directory: 'test/site/content',
+  history_directory: 'test/site/content/history',
   extension: 'json',
   spaces_document: null,
   spaces_history: null,
@@ -67,11 +68,11 @@ test('constructor(config): throws an error when missing config', (t) => {
 });
 
 test('constructor(config): throws an error when missing config content directory', (t) => {
-  t.throws(() => new StorageProvider({ history_dir: '_' }));
+  t.throws(() => new StorageProvider({ history_directory: '_' }));
 });
 
 test('constructor(config): throws an error when missing config history directory', (t) => {
-  t.throws(() => new StorageProvider({ content_dir: '_' }));
+  t.throws(() => new StorageProvider({ content_directory: '_' }));
 });
 
 test('all(): returns all the documents', async (t) => {
@@ -80,36 +81,101 @@ test('all(): returns all the documents', async (t) => {
   t.deepEqual(results, [example]);
 });
 
-test('tags(): returns all unique tags from all the documents', async (t) => {
+test('getQuery(query, documents): returns all unique tags from all the documents', async (t) => {
   const s = new StorageProvider(config);
+  await s.add(example);
   await s.add(fake);
   await s.add(empty);
-  const results = await s.tags();
-  t.deepEqual(results, ['Example Tag', 'Fake']);
+  const results = await s.getQuery('SELECT tags FROM documents WHERE slug IS_NOT_NULL ORDER BY slug ASC LIMIT 3');
+  t.deepEqual(results, [
+    {
+      tags: [
+        'Fake',
+      ],
+    },
+    {
+      tags: [
+        'Example Tag',
+      ],
+    },
+    {
+      tags: [
+        'Example Tag',
+        'Fake',
+      ],
+    },
+  ]);
+
+  const tags = R.pipe(
+    R.pluck('tags'),
+    R.flatten,
+    R.uniq,
+    R.filter(Boolean),
+    R.sort((a, b) => a.localeCompare(b)),
+  )(results);
+  t.deepEqual(tags, ['Example Tag', 'Fake']);
 });
 
-test('getTaggedDocuments(tag, limit, fields): returns documents with the given tag', async (t) => {
+test('getQuery(query, documents): returns all unique tags and slug from all the documents', async (t) => {
+  const s = new StorageProvider(config);
+  await s.add(example);
+  await s.add(fake);
+  await s.add(empty);
+  const results = await s.getQuery('SELECT slug, tags FROM documents WHERE slug IS_NOT_NULL ORDER BY slug ASC LIMIT 3');
+  t.deepEqual(results, [
+    {
+      slug: 'empty',
+      tags: [
+        'Fake',
+      ],
+    },
+    {
+      slug: 'example-title',
+      tags: [
+        'Example Tag',
+      ],
+    },
+    {
+      slug: 'fake',
+      tags: [
+        'Example Tag',
+        'Fake',
+      ],
+    },
+  ]);
+
+  const tags = R.pipe(
+    R.pluck('tags'),
+    R.flatten,
+    R.uniq,
+    R.filter(Boolean),
+    R.sort((a, b) => a.localeCompare(b)),
+  )(results);
+  t.deepEqual(tags, ['Example Tag', 'Fake']);
+});
+
+test('getQuery(query): returns documents with the given tag', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
 
   let tag = 'Example Tag';
-  let query = `SELECT 'slug', 'title', 'tags', 'updateDate' FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
+  let query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
   let output = await s.getQuery(query);
   t.deepEqual(output, [example, fake]);
 
   tag = 'Fake';
-  query = `SELECT 'slug', 'title', 'tags', 'updateDate' FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
+  query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
   output = await s.getQuery(query);
   t.deepEqual(output, [fake, empty]);
 
   tag = 'No Tag';
-  query = `SELECT 'slug', 'title', 'tags', 'updateDate' FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
+  query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
   output = await s.getQuery(query);
   t.deepEqual(output, []);
 });
 
-test('getRecentDocuments(limit, fields): returns the requested number of the most recently updated documents', async (t) => {
+test('getQuery(query): returns the requested number of the most recently updated documents', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
@@ -130,7 +196,7 @@ test('getRecentDocuments(limit, fields): returns the requested number of the mos
   t.deepEqual(output, [empty, fake, example]);
 });
 
-test('getRelatedDocuments(document, limit, fields): returns the requested number of the related documents', async (t) => {
+test('getQuery(query): returns the requested number of the related documents', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   const tagged = { ...empty, tags: ['Example Tag'] };
@@ -141,7 +207,7 @@ test('getRelatedDocuments(document, limit, fields): returns the requested number
   t.deepEqual(output, [tagged, fake]);
 });
 
-test('getRandomDocuments(limit, fields): returns the requested number of random documents', async (t) => {
+test('getQuery(query): returns the requested number of random documents', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
@@ -473,8 +539,8 @@ test('update(document, originalSlug): renames the history directory if it exists
   history = await s.getHistory(document.slug);
   t.is(history.length, 4);
 
-  t.is(fs.existsSync(`${config.history_dir}/second-file-new-directory`), true);
-  t.is(fs.existsSync(`${config.history_dir}/second-file`), false);
+  t.is(fs.existsSync(`${config.history_directory}/second-file-new-directory`), true);
+  t.is(fs.existsSync(`${config.history_directory}/second-file`), false);
 });
 
 test('update(document, originalSlug): updates the file on disk with missing fields', async (t) => {
@@ -573,7 +639,7 @@ test('delete(document): does nothing when no file is found', async (t) => {
   t.is(all.length, 2);
 });
 
-test('augmentDocuments(documents, _fields): returns all matching documents', async (t) => {
+test('getQuery(documents, _fields): returns all matching documents with an array of slugs', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);
