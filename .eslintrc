@@ -57,6 +57,8 @@
     "no-plusplus": 0,
     "no-restricted-syntax": 0,
     "no-underscore-dangle": 0,
-    "no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }]
+    "no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
+    "consistent-return": ["warn", { "treatUndefinedAsUnspecified": false }],
+    "object-curly-newline": 0
   }
 }
