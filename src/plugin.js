@@ -3,7 +3,7 @@ const debug = require('debug')('Uttori.Plugin.StorageProvider.JSON');
 const StorageProvider = require('./storage-provider');
 
 /**
- * Uttori Storage Provider - JSON Memory
+ * Uttori Storage Provider - JSON File
  * @example <caption>Plugin</caption>
  * const storage = Plugin.callback(viewModel, context);
  * @class

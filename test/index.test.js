@@ -5,8 +5,8 @@ const config = {
   content_directory: 'test/site/content',
   history_directory: 'test/site/content/history',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
+  spaces_document: undefined,
+  spaces_history: undefined,
 };
 
 test('Plugin: is properly exported', (t) => {

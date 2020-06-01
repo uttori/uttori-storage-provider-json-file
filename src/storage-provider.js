@@ -23,8 +23,8 @@ const { process } = require('./query-tools');
   * @property {String} config.content_directory - The directory to store documents.
   * @property {String} config.history_directory - The directory to store document histories.
   * @property {String} config.extension='json' - The file extension to use for file, name of the employee.
-  * @property {Number} config.spaces_document=null - The spaces parameter for JSON stringifying documents.
-  * @property {Number} config.spaces_history=null - The spaces parameter for JSON stringifying history.
+  * @property {Number} config.spaces_document=undefined - The spaces parameter for JSON stringifying documents.
+  * @property {Number} config.spaces_history=undefined - The spaces parameter for JSON stringifying history.
   * @property {UttoriDocument[]} documents - The collection of documents.
   * @example <caption>Init StorageProvider</caption>
   * const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });
@@ -37,8 +37,8 @@ class StorageProvider {
   * @param {String} config.content_directory - The directory to store documents.
   * @param {String} config.history_directory - The directory to store document histories.
   * @param {String} [config.extension=json] - The file extension to use for file, name of the employee.
-  * @param {Number} [config.spaces_document=null] - The spaces parameter for JSON stringifying documents.
-  * @param {Number} [config.spaces_history=null] - The spaces parameter for JSON stringifying history.
+  * @param {Number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
+  * @param {Number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
   * @constructor
   */
   constructor(config) {
@@ -58,8 +58,8 @@ class StorageProvider {
 
     this.config = {
       extension: 'json',
-      spaces_document: null,
-      spaces_history: null,
+      spaces_document: undefined,
+      spaces_history: undefined,
       ...config,
     };
 
@@ -197,8 +197,8 @@ class StorageProvider {
       document.updateDate = document.createDate;
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history));
-      await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, null, this.config.spaces_document));
+      await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history));
+      await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, undefined, this.config.spaces_document));
       await this.refresh();
     } else {
       debug('Cannot add, existing document!');
@@ -218,8 +218,8 @@ class StorageProvider {
     document.updateDate = Date.now();
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-    await this.updateHistory(document.slug, JSON.stringify(document, null, this.config.spaces_history), originalSlug);
-    await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, null, this.config.spaces_document));
+    await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history), originalSlug);
+    await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, undefined, this.config.spaces_document));
     await this.refresh();
   }
 
@@ -265,7 +265,7 @@ class StorageProvider {
     const existing = await this.get(slug);
     if (existing) {
       debug('Document found, deleting document:', slug);
-      await this.updateHistory(existing.slug, JSON.stringify(existing, null, this.config.spaces_history));
+      await this.updateHistory(existing.slug, JSON.stringify(existing, undefined, this.config.spaces_history));
       await FileUtility.deleteFile(this.config.content_directory, slug, this.config.extension);
       await this.refresh();
     } else {

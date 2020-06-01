@@ -103,8 +103,8 @@ Storage for Uttori documents using JSON files stored on the local file system.
 | config.content_directory | <code>String</code> |  | The directory to store documents. |
 | config.history_directory | <code>String</code> |  | The directory to store document histories. |
 | config.extension | <code>String</code> | <code>&#x27;json&#x27;</code> | The file extension to use for file, name of the employee. |
-| config.spaces_document | <code>Number</code> | <code></code> | The spaces parameter for JSON stringifying documents. |
-| config.spaces_history | <code>Number</code> | <code></code> | The spaces parameter for JSON stringifying history. |
+| config.spaces_document | <code>Number</code> |  | The spaces parameter for JSON stringifying documents. |
+| config.spaces_history | <code>Number</code> |  | The spaces parameter for JSON stringifying history. |
 | documents | [<code>Array.&lt;UttoriDocument&gt;</code>](#UttoriDocument) |  | The collection of documents. |
 
 
@@ -134,8 +134,8 @@ Creates an instance of StorageProvider.
 | config.content_directory | <code>String</code> |  | The directory to store documents. |
 | config.history_directory | <code>String</code> |  | The directory to store document histories. |
 | [config.extension] | <code>String</code> | <code>json</code> | The file extension to use for file, name of the employee. |
-| [config.spaces_document] | <code>Number</code> | <code></code> | The spaces parameter for JSON stringifying documents. |
-| [config.spaces_history] | <code>Number</code> | <code></code> | The spaces parameter for JSON stringifying history. |
+| [config.spaces_document] | <code>Number</code> |  | The spaces parameter for JSON stringifying documents. |
+| [config.spaces_history] | <code>Number</code> |  | The spaces parameter for JSON stringifying history. |
 
 **Example** *(Init StorageProvider)*  
 ```js
