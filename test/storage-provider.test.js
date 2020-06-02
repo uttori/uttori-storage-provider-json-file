@@ -525,6 +525,8 @@ test('update(document, originalSlug): renames the history directory if it exists
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
+  await s.refresh();
+  // TODO Sometimes returns 1, not 2.
   history = await s.getHistory(document.slug);
   t.is(history.length, 2);
 
@@ -534,6 +536,7 @@ test('update(document, originalSlug): renames the history directory if it exists
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
+  await s.refresh();
   history = await s.getHistory(document.slug);
   t.is(history.length, 3);
 
@@ -544,6 +547,7 @@ test('update(document, originalSlug): renames the history directory if it exists
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
+  await s.refresh();
   history = await s.getHistory(document.slug);
   t.is(history.length, 4);
 
