@@ -356,6 +356,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v2');
   history = await s.getHistory(document.slug);
+  // TODO: Occasionally this returns 1, not 2.
   t.is(history.length, 2);
 
   document.title = 'second file-v3';
@@ -365,7 +366,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v3');
   history = await s.getHistory(document.slug);
-  // NOTE: Occasionlly returns 2.
+  // TODO: Occasionlly returns 2, not 3.
   t.is(history.length, 3);
 
   document.slug = 'second-file-new-directory';

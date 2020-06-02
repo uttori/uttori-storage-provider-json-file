@@ -5,9 +5,10 @@ const { parseQueryToRamda, validateQuery, fyShuffle } = require('uttori-utilitie
 
 /**
  * Processes a query string.
- * @param {String} query - The SQL-like query to parse.
- * @param {Object[]} objects - An array of object to search within.
- * @returns {Object[]} Returns an array of all matched documents.
+ *
+ * @param {string} query - The SQL-like query to parse.
+ * @param {object[]} objects - An array of object to search within.
+ * @returns {object[]} Returns an array of all matched documents.
  * @example
  * process('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
  * ➜ [{ ... }, ...]

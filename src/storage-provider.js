@@ -9,38 +9,40 @@ const { process } = require('./query-tools');
 
 /**
  * @typedef UttoriDocument The document object we store, with only the minimum methods we access listed.
- * @property {String} slug The unique identifier for the document.
- * @property {String} [title=''] The unique identifier for the document.
- * @property {Number | Date} [createDate] The creation date of the document.
- * @property {Number | Date} [updateDate] The last date the document was updated.
- * @property {String[]} [tags=[]] The unique identifier for the document.
- * @property {Object} [customData={}] Any extra meta data for the document.
+ * @property {string} slug The unique identifier for the document.
+ * @property {string} [title=''] The unique identifier for the document.
+ * @property {number|Date} [createDate] The creation date of the document.
+ * @property {number|Date} [updateDate] The last date the document was updated.
+ * @property {string[]} [tags=[]] The unique identifier for the document.
+ * @property {object} [customData={}] Any extra meta data for the document.
  */
 
 /**
-  * Storage for Uttori documents using JSON files stored on the local file system.
-  * @property {Object} config - The configuration object.
-  * @property {String} config.content_directory - The directory to store documents.
-  * @property {String} config.history_directory - The directory to store document histories.
-  * @property {String} config.extension='json' - The file extension to use for file, name of the employee.
-  * @property {Number} config.spaces_document=undefined - The spaces parameter for JSON stringifying documents.
-  * @property {Number} config.spaces_history=undefined - The spaces parameter for JSON stringifying history.
-  * @property {UttoriDocument[]} documents - The collection of documents.
-  * @example <caption>Init StorageProvider</caption>
-  * const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });
-  * @class
-  */
+ * Storage for Uttori documents using JSON files stored on the local file system.
+ *
+ * @property {object} config - The configuration object.
+ * @property {string} config.content_directory - The directory to store documents.
+ * @property {string} config.history_directory - The directory to store document histories.
+ * @property {string} config.extension='json' - The file extension to use for file, name of the employee.
+ * @property {number} config.spaces_document=undefined - The spaces parameter for JSON stringifying documents.
+ * @property {number} config.spaces_history=undefined - The spaces parameter for JSON stringifying history.
+ * @property {UttoriDocument[]} documents - The collection of documents.
+ * @example <caption>Init StorageProvider</caption>
+ * const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });
+ * @class
+ */
 class StorageProvider {
 /**
-  * Creates an instance of StorageProvider.
-  * @param {Object} config - A configuration object.
-  * @param {String} config.content_directory - The directory to store documents.
-  * @param {String} config.history_directory - The directory to store document histories.
-  * @param {String} [config.extension=json] - The file extension to use for file, name of the employee.
-  * @param {Number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
-  * @param {Number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
-  * @constructor
-  */
+ * Creates an instance of StorageProvider.
+ *
+ * @param {object} config - A configuration object.
+ * @param {string} config.content_directory - The directory to store documents.
+ * @param {string} config.history_directory - The directory to store document histories.
+ * @param {string} [config.extension=json] - The file extension to use for file, name of the employee.
+ * @param {number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
+ * @param {number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
+ * @class
+ */
   constructor(config) {
     debug('constructor', config);
     if (!config) {
@@ -83,6 +85,7 @@ class StorageProvider {
 
   /**
    * Returns all documents.
+   *
    * @async
    * @returns {Promise} Promise object represents all documents.
    * @example
@@ -97,8 +100,9 @@ class StorageProvider {
 
   /**
    * Returns all documents matching a given query.
+   *
    * @async
-   * @param {String} query - The conditions on which documents should be returned.
+   * @param {string} query - The conditions on which documents should be returned.
    * @returns {Promise} Promise object represents all matching documents.
    * @memberof StorageProvider
    */
@@ -110,8 +114,9 @@ class StorageProvider {
 
   /**
    * Returns a document for a given slug.
+   *
    * @async
-   * @param {String} slug - The slug of the document to be returned.
+   * @param {string} slug - The slug of the document to be returned.
    * @returns {Promise} Promise object represents the returned UttoriDocument.
    * @memberof StorageProvider
    */
@@ -136,8 +141,9 @@ class StorageProvider {
 
   /**
    * Returns the history of edits for a given slug.
+   *
    * @async
-   * @param {String} slug - The slug of the document to get history for.
+   * @param {string} slug - The slug of the document to get history for.
    * @returns {Promise} Promise object represents the returned history.
    * @memberof StorageProvider
    */
@@ -153,9 +159,10 @@ class StorageProvider {
 
   /**
    * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
+   *
    * @async
-   * @param {String} slug - The slug of the document to be returned.
-   * @param {Number} revision - The unix timestamp of the history to be returned.
+   * @param {string} slug - The slug of the document to be returned.
+   * @param {number} revision - The unix timestamp of the history to be returned.
    * @returns {Promise} Promise object represents the returned revision of the document.
    * @memberof StorageProvider
    */
@@ -179,6 +186,7 @@ class StorageProvider {
 
   /**
    * Saves a document to the file system.
+   *
    * @async
    * @param {UttoriDocument} document - The document to be added to the collection.
    * @memberof StorageProvider
@@ -207,10 +215,11 @@ class StorageProvider {
 
   /**
    * Updates a document and saves to the file system.
+   *
    * @async
    * @private
    * @param {UttoriDocument} document - The document to be updated in the collection.
-   * @param {String} originalSlug - The original slug identifying the document, or the slug if it has not changed.
+   * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
    * @memberof StorageProvider
    */
   async updateValid(document, originalSlug) {
@@ -225,9 +234,10 @@ class StorageProvider {
 
   /**
    * Updates a document and figures out how to save to the file system.
+   *
    * @async
    * @param {UttoriDocument} document - The document to be updated in the collection.
-   * @param {String} originalSlug - The original slug identifying the document, or the slug if it has not changed.
+   * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
    * @memberof StorageProvider
    */
   async update(document, originalSlug) {
@@ -256,8 +266,9 @@ class StorageProvider {
 
   /**
    * Removes a document from the file system.
+   *
    * @async
-   * @param {String} slug - The slug identifying the document.
+   * @param {string} slug - The slug identifying the document.
    * @memberof StorageProvider
    */
   async delete(slug) {
@@ -277,6 +288,7 @@ class StorageProvider {
 
   /**
    * Reloads all documents from the file system into the cache.
+   *
    * @async
    * @memberof StorageProvider
    */
@@ -303,10 +315,11 @@ class StorageProvider {
 
   /**
    * Updates History for a given slug, renaming the store file and history folder as needed.
+   *
    * @async
-   * @param {String} slug - The slug of the document to update history for.
-   * @param {String} content - The revision of the document to be saved.
-   * @param {String} [originalSlug] - The original slug identifying the document, or the slug if it has not changed.
+   * @param {string} slug - The slug of the document to update history for.
+   * @param {string} content - The revision of the document to be saved.
+   * @param {string} [originalSlug] - The original slug identifying the document, or the slug if it has not changed.
    * @memberof StorageProvider
    */
   async updateHistory(slug, content, originalSlug) {

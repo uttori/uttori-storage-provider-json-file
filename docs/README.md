@@ -99,12 +99,12 @@ Storage for Uttori documents using JSON files stored on the local file system.
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| config | <code>Object</code> |  | The configuration object. |
-| config.content_directory | <code>String</code> |  | The directory to store documents. |
-| config.history_directory | <code>String</code> |  | The directory to store document histories. |
-| config.extension | <code>String</code> | <code>&#x27;json&#x27;</code> | The file extension to use for file, name of the employee. |
-| config.spaces_document | <code>Number</code> |  | The spaces parameter for JSON stringifying documents. |
-| config.spaces_history | <code>Number</code> |  | The spaces parameter for JSON stringifying history. |
+| config | <code>object</code> |  | The configuration object. |
+| config.content_directory | <code>string</code> |  | The directory to store documents. |
+| config.history_directory | <code>string</code> |  | The directory to store document histories. |
+| config.extension | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file, name of the employee. |
+| config.spaces_document | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
+| config.spaces_history | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
 | documents | [<code>Array.&lt;UttoriDocument&gt;</code>](#UttoriDocument) |  | The collection of documents. |
 
 
@@ -130,12 +130,12 @@ Creates an instance of StorageProvider.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| config | <code>Object</code> |  | A configuration object. |
-| config.content_directory | <code>String</code> |  | The directory to store documents. |
-| config.history_directory | <code>String</code> |  | The directory to store document histories. |
-| [config.extension] | <code>String</code> | <code>json</code> | The file extension to use for file, name of the employee. |
-| [config.spaces_document] | <code>Number</code> |  | The spaces parameter for JSON stringifying documents. |
-| [config.spaces_history] | <code>Number</code> |  | The spaces parameter for JSON stringifying history. |
+| config | <code>object</code> |  | A configuration object. |
+| config.content_directory | <code>string</code> |  | The directory to store documents. |
+| config.history_directory | <code>string</code> |  | The directory to store document histories. |
+| [config.extension] | <code>string</code> | <code>&quot;json&quot;</code> | The file extension to use for file, name of the employee. |
+| [config.spaces_document] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
+| [config.spaces_history] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
 
 **Example** *(Init StorageProvider)*  
 ```js
@@ -163,7 +163,7 @@ Returns all documents matching a given query.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| query | <code>String</code> | The conditions on which documents should be returned. |
+| query | <code>string</code> | The conditions on which documents should be returned. |
 
 <a name="StorageProvider+get"></a>
 
@@ -175,7 +175,7 @@ Returns a document for a given slug.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| slug | <code>String</code> | The slug of the document to be returned. |
+| slug | <code>string</code> | The slug of the document to be returned. |
 
 <a name="StorageProvider+getHistory"></a>
 
@@ -187,7 +187,7 @@ Returns the history of edits for a given slug.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| slug | <code>String</code> | The slug of the document to get history for. |
+| slug | <code>string</code> | The slug of the document to get history for. |
 
 <a name="StorageProvider+getRevision"></a>
 
@@ -199,8 +199,8 @@ Returns a specifc revision from the history of edits for a given slug and revisi
 
 | Param | Type | Description |
 | --- | --- | --- |
-| slug | <code>String</code> | The slug of the document to be returned. |
-| revision | <code>Number</code> | The unix timestamp of the history to be returned. |
+| slug | <code>string</code> | The slug of the document to be returned. |
+| revision | <code>number</code> | The unix timestamp of the history to be returned. |
 
 <a name="StorageProvider+add"></a>
 
@@ -224,7 +224,7 @@ Updates a document and saves to the file system.
 | Param | Type | Description |
 | --- | --- | --- |
 | document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be updated in the collection. |
-| originalSlug | <code>String</code> | The original slug identifying the document, or the slug if it has not changed. |
+| originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
 <a name="StorageProvider+update"></a>
 
@@ -236,7 +236,7 @@ Updates a document and figures out how to save to the file system.
 | Param | Type | Description |
 | --- | --- | --- |
 | document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be updated in the collection. |
-| originalSlug | <code>String</code> | The original slug identifying the document, or the slug if it has not changed. |
+| originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
 <a name="StorageProvider+delete"></a>
 
@@ -247,7 +247,7 @@ Removes a document from the file system.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| slug | <code>String</code> | The slug identifying the document. |
+| slug | <code>string</code> | The slug identifying the document. |
 
 <a name="StorageProvider+refresh"></a>
 
@@ -264,9 +264,9 @@ Updates History for a given slug, renaming the store file and history folder as 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| slug | <code>String</code> | The slug of the document to update history for. |
-| content | <code>String</code> | The revision of the document to be saved. |
-| [originalSlug] | <code>String</code> | The original slug identifying the document, or the slug if it has not changed. |
+| slug | <code>string</code> | The slug of the document to update history for. |
+| content | <code>string</code> | The revision of the document to be saved. |
+| [originalSlug] | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
 <a name="UttoriDocument"></a>
 
@@ -276,12 +276,12 @@ Updates History for a given slug, renaming the store file and history folder as 
 
 | Name | Type | Default | Description |
 | --- | --- | --- | --- |
-| slug | <code>String</code> |  | The unique identifier for the document. |
-| [title] | <code>String</code> | <code>&#x27;&#x27;</code> | The unique identifier for the document. |
-| [createDate] | <code>Number</code> \| <code>Date</code> |  | The creation date of the document. |
-| [updateDate] | <code>Number</code> \| <code>Date</code> |  | The last date the document was updated. |
-| [tags] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | The unique identifier for the document. |
-| [customData] | <code>Object</code> | <code>{}</code> | Any extra meta data for the document. |
+| slug | <code>string</code> |  | The unique identifier for the document. |
+| [title] | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | The unique identifier for the document. |
+| [createDate] | <code>number</code> \| <code>Date</code> |  | The creation date of the document. |
+| [updateDate] | <code>number</code> \| <code>Date</code> |  | The last date the document was updated. |
+| [tags] | <code>Array.&lt;string&gt;</code> | <code>[]</code> | The unique identifier for the document. |
+| [customData] | <code>object</code> | <code>{}</code> | Any extra meta data for the document. |
 
 
 * * *

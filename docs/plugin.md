@@ -6,28 +6,28 @@ Uttori Storage Provider - JSON File
 **Kind**: global class  
 
 * [Plugin](#Plugin)
-    * [.configKey](#Plugin.configKey) ⇒ <code>String</code>
-    * [.defaultConfig()](#Plugin.defaultConfig) ⇒ <code>Object</code>
+    * [.configKey](#Plugin.configKey) ⇒ <code>string</code>
+    * [.defaultConfig()](#Plugin.defaultConfig) ⇒ <code>object</code>
     * [.register(context)](#Plugin.register)
 
 <a name="Plugin.configKey"></a>
 
-### Plugin.configKey ⇒ <code>String</code>
+### Plugin.configKey ⇒ <code>string</code>
 The configuration key for plugin to look for in the provided configuration.
 
 **Kind**: static property of [<code>Plugin</code>](#Plugin)  
-**Returns**: <code>String</code> - The configuration key.  
+**Returns**: <code>string</code> - The configuration key.  
 **Example** *(Plugin.configKey)*  
 ```js
 const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
 ```
 <a name="Plugin.defaultConfig"></a>
 
-### Plugin.defaultConfig() ⇒ <code>Object</code>
+### Plugin.defaultConfig() ⇒ <code>object</code>
 The default configuration.
 
 **Kind**: static method of [<code>Plugin</code>](#Plugin)  
-**Returns**: <code>Object</code> - The configuration.  
+**Returns**: <code>object</code> - The configuration.  
 **Example** *(Plugin.defaultConfig())*  
 ```js
 const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
@@ -41,11 +41,11 @@ Register the plugin with a provided set of events on a provided Hook system.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>Object</code> | A Uttori-like context. |
-| context.hooks | <code>Object</code> | An event system / hook system to use. |
+| context | <code>object</code> | A Uttori-like context. |
+| context.hooks | <code>object</code> | An event system / hook system to use. |
 | context.hooks.on | <code>function</code> | An event registration function. |
-| context.config | <code>Object</code> | A provided configuration to use. |
-| context.config.events | <code>Object</code> | An object whose keys correspong to methods, and contents are events to listen for. |
+| context.config | <code>object</code> | A provided configuration to use. |
+| context.config.events | <code>object</code> | An object whose keys correspong to methods, and contents are events to listen for. |
 
 **Example** *(Plugin.register(context))*  
 ```js

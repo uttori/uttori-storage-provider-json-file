@@ -2,13 +2,16 @@
   "extends": [
     "airbnb",
     "plugin:ava/recommended",
+    "plugin:jsdoc/recommended",
     "plugin:node/recommended",
+    "plugin:optimize-regex/all",
     "plugin:ramda/recommended",
     "plugin:security/recommended",
     "plugin:unicorn/recommended"
   ],
   "plugins": [
     "ava",
+    "jsdoc",
     "no-inferred-method-name",
     "node",
     "optimize-regex",
@@ -28,7 +31,7 @@
     "expect": true
   },
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2020
   },
   "rules": {
     "ava/no-only-test": 0,
@@ -53,6 +56,7 @@
     "global-require": 0,
     "max-len": 0,
     "no-empty": ["error", { "allowEmptyCatch": true }],
+    "no-inferred-method-name/no-inferred-method-name": "error",
     "no-param-reassign": 0,
     "no-plusplus": 0,
     "no-restricted-syntax": 0,

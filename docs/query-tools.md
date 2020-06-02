@@ -1,15 +1,15 @@
 <a name="process"></a>
 
-## process(query, objects) ⇒ <code>Array.&lt;Object&gt;</code>
+## process(query, objects) ⇒ <code>Array.&lt;object&gt;</code>
 Processes a query string.
 
 **Kind**: global function  
-**Returns**: <code>Array.&lt;Object&gt;</code> - Returns an array of all matched documents.  
+**Returns**: <code>Array.&lt;object&gt;</code> - Returns an array of all matched documents.  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| query | <code>String</code> | The SQL-like query to parse. |
-| objects | <code>Array.&lt;Object&gt;</code> | An array of object to search within. |
+| query | <code>string</code> | The SQL-like query to parse. |
+| objects | <code>Array.&lt;object&gt;</code> | An array of object to search within. |
 
 **Example**  
 ```js
