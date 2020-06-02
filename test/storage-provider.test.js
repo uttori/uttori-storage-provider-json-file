@@ -286,7 +286,9 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v2');
+  await s.refresh();
   history = await s.getHistory(document.slug);
+  // TODO Sometimes returns 1, not 2.
   t.is(history.length, 2);
 
   document.title = 'second file-v3';
@@ -295,7 +297,9 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v3');
+  await s.refresh();
   history = await s.getHistory(document.slug);
+  // TODO Sometimes returns 2, not 3.
   t.is(history.length, 3);
 
   document.slug = 'second-file-new-directory';
@@ -355,6 +359,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v2');
+  await s.refresh();
   history = await s.getHistory(document.slug);
   // TODO: Occasionally this returns 1, not 2.
   t.is(history.length, 2);
@@ -365,6 +370,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v3');
+  await s.refresh();
   history = await s.getHistory(document.slug);
   // TODO: Occasionlly returns 2, not 3.
   t.is(history.length, 3);
