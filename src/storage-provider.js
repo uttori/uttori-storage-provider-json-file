@@ -341,7 +341,8 @@ class StorageProvider {
     }
 
     /* istanbul ignore else */
-    if (!await fs.pathExists(new_folder)) {
+    const pathExists = await fs.pathExists(new_folder);
+    if (!pathExists) {
       debug('Creating document history folder:', new_folder);
       /* istanbul ignore next */
       try { await FileUtility.ensureDirectory(new_folder); } catch (error) {
