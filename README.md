@@ -1,5 +1,5 @@
-[![view on npm](http://img.shields.io/npm/v/uttori-storage-provider-json-file.svg)](https://www.npmjs.org/package/uttori-storage-provider-json-file)
-[![npm module downloads](http://img.shields.io/npm/dt/uttori-storage-provider-json-file.svg)](https://www.npmjs.org/package/uttori-storage-provider-json-file)
+[![view on npm](http://img.shields.io/npm/v/@uttori/storage-provider-json-file.svg)](https://www.npmjs.org/package/@uttori/storage-provider-json-file)
+[![npm module downloads](http://img.shields.io/npm/dt/@uttori/storage-provider-json-file.svg)](https://www.npmjs.org/package/@uttori/storage-provider-json-file)
 [![Build Status](https://travis-ci.org/uttori/uttori-storage-provider-json-file.svg?branch=master)](https://travis-ci.org/uttori/uttori-storage-provider-json-file)
 [![Dependency Status](https://david-dm.org/uttori/uttori-storage-provider-json-file.svg)](https://david-dm.org/uttori/uttori-storage-provider-json-file)
 [![Coverage Status](https://coveralls.io/repos/uttori/uttori-storage-provider-json-file/badge.svg?branch=master)](https://coveralls.io/r/uttori/uttori-storage-provider-json-file?branch=master)

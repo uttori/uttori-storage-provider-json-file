@@ -13,6 +13,7 @@ class Plugin {
   /**
    * The configuration key for plugin to look for in the provided configuration.
    *
+   * @type {string}
    * @returns {string} The configuration key.
    * @example <caption>Plugin.configKey</caption>
    * const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };

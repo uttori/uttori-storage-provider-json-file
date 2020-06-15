@@ -1,7 +1,4 @@
-const StorageProvider = require('./storage-provider');
-const Plugin = require('./plugin');
-
 module.exports = {
-  StorageProvider,
-  Plugin,
+  StorageProvider: require('./storage-provider'),
+  Plugin: require('./plugin'),
 };
