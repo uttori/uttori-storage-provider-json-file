@@ -44,7 +44,7 @@ npm install --save uttori-storage-provider-json-file
 # Example
 
 ```js
-const { StorageProvider } = require('uttori-storage-provider-json-file');
+const { StorageProvider } = require('@uttori/storage-provider-json-file');
 const s = new StorageProvider({
   content_directory: 'example/content',
   history_directory: 'example/history',
