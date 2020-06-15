@@ -1,34 +1,17 @@
-[![view on npm](http://img.shields.io/npm/v/uttori-storage-provider-json-file.svg)](https://www.npmjs.org/package/uttori-storage-provider-json-file)
-[![npm module downloads](http://img.shields.io/npm/dt/uttori-storage-provider-json-file.svg)](https://www.npmjs.org/package/uttori-storage-provider-json-file)
-[![Build Status](https://travis-ci.org/uttori/uttori-storage-provider-json-file.svg?branch=master)](https://travis-ci.org/uttori/uttori-storage-provider-json-file)
-[![Dependency Status](https://david-dm.org/uttori/uttori-storage-provider-json-file.svg)](https://david-dm.org/uttori/uttori-storage-provider-json-file)
-[![Coverage Status](https://coveralls.io/repos/uttori/uttori-storage-provider-json-file/badge.svg?branch=master)](https://coveralls.io/r/uttori/uttori-storage-provider-json-file?branch=master)
+## Classes
 
-# Uttori Storage Provider - JSON File
+<dl>
+<dt><a href="#StorageProvider">StorageProvider</a></dt>
+<dd><p>Storage for Uttori documents using JSON files stored on the local file system.</p>
+</dd>
+</dl>
 
-Uttori storage provider using JSON files on disk.
+## Typedefs
 
-## Install
-
-```bash
-npm install --save uttori-storage-provider-json-file
-```
-
-# Config
-
-```js
-{
-  content_dir: '',
-  history_dir: '',
-  extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
-}
-```
-
-* * *
-
-# API Reference
+<dl>
+<dt><a href="#UttoriDocument">UttoriDocument</a></dt>
+<dd></dd>
+</dl>
 
 <a name="StorageProvider"></a>
 
@@ -38,16 +21,20 @@ Storage for Uttori documents using JSON files stored on the local file system.
 **Kind**: global class  
 **Properties**
 
-| Name | Type | Description |
-| --- | --- | --- |
-| config | <code>Object</code> | The configuration object. |
-| documents | <code>Array.&lt;UttoriDocument&gt;</code> | The collection of documents. |
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| config | <code>object</code> |  | The configuration object. |
+| config.content_directory | <code>string</code> |  | The directory to store documents. |
+| config.history_directory | <code>string</code> |  | The directory to store document histories. |
+| config.extension | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file, name of the employee. |
+| config.spaces_document | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
+| config.spaces_history | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
+| documents | [<code>Array.&lt;UttoriDocument&gt;</code>](#UttoriDocument) |  | The collection of documents. |
 
 
 * [StorageProvider](#StorageProvider)
     * [new StorageProvider(config)](#new_StorageProvider_new)
     * [.all()](#StorageProvider+all) ⇒ <code>Promise</code>
-    * [.tags()](#StorageProvider+tags) ⇒ <code>Promise</code>
     * [.getQuery(query)](#StorageProvider+getQuery) ⇒ <code>Promise</code>
     * [.get(slug)](#StorageProvider+get) ⇒ <code>Promise</code>
     * [.getHistory(slug)](#StorageProvider+getHistory) ⇒ <code>Promise</code>
@@ -57,7 +44,7 @@ Storage for Uttori documents using JSON files stored on the local file system.
     * [.update(document, originalSlug)](#StorageProvider+update)
     * [.delete(slug)](#StorageProvider+delete)
     * [.refresh()](#StorageProvider+refresh)
-    * [.updateHistory(slug, content, originalSlug)](#StorageProvider+updateHistory)
+    * [.updateHistory(slug, content, [originalSlug])](#StorageProvider+updateHistory)
 
 <a name="new_StorageProvider_new"></a>
 
@@ -67,16 +54,16 @@ Creates an instance of StorageProvider.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| config | <code>Object</code> |  | A configuration object. |
-| config.content_dir | <code>string</code> |  | The directory to store documents. |
-| config.history_dir | <code>string</code> |  | The directory to store document histories. |
+| config | <code>object</code> |  | A configuration object. |
+| config.content_directory | <code>string</code> |  | The directory to store documents. |
+| config.history_directory | <code>string</code> |  | The directory to store document histories. |
 | [config.extension] | <code>string</code> | <code>&quot;json&quot;</code> | The file extension to use for file, name of the employee. |
-| [config.spaces_document] | <code>number</code> | <code></code> | The spaces parameter for JSON stringifying documents. |
-| [config.spaces_history] | <code>number</code> | <code></code> | The spaces parameter for JSON stringifying history. |
+| [config.spaces_document] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
+| [config.spaces_history] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
 
 **Example** *(Init StorageProvider)*  
 ```js
-const storageProvider = new StorageProvider({ content_dir: 'content', history_dir: 'history', spaces_document: 2 });
+const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });
 ```
 <a name="StorageProvider+all"></a>
 
@@ -89,18 +76,6 @@ Returns all documents.
 ```js
 storageProvider.all();
 ➜ [{ slug: 'first-document', ... }, ...]
-```
-<a name="StorageProvider+tags"></a>
-
-### storageProvider.tags() ⇒ <code>Promise</code>
-Returns all unique tags.
-
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
-**Returns**: <code>Promise</code> - Promise object represents all documents.  
-**Example**  
-```js
-storageProvider.tags();
-➜ ['first-tag', ...]
 ```
 <a name="StorageProvider+getQuery"></a>
 
@@ -160,7 +135,7 @@ Saves a document to the file system.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| document | <code>UttoriDocument</code> | The document to be added to the collection. |
+| document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be added to the collection. |
 
 <a name="StorageProvider+updateValid"></a>
 
@@ -172,7 +147,7 @@ Updates a document and saves to the file system.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| document | <code>UttoriDocument</code> | The document to be updated in the collection. |
+| document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be updated in the collection. |
 | originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
 <a name="StorageProvider+update"></a>
@@ -184,7 +159,7 @@ Updates a document and figures out how to save to the file system.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| document | <code>UttoriDocument</code> | The document to be updated in the collection. |
+| document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be updated in the collection. |
 | originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
 <a name="StorageProvider+delete"></a>
@@ -206,7 +181,7 @@ Reloads all documents from the file system into the cache.
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
 <a name="StorageProvider+updateHistory"></a>
 
-### storageProvider.updateHistory(slug, content, originalSlug)
+### storageProvider.updateHistory(slug, content, [originalSlug])
 Updates History for a given slug, renaming the store file and history folder as needed.
 
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
@@ -215,25 +190,20 @@ Updates History for a given slug, renaming the store file and history folder as 
 | --- | --- | --- |
 | slug | <code>string</code> | The slug of the document to update history for. |
 | content | <code>string</code> | The revision of the document to be saved. |
-| originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
+| [originalSlug] | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
+<a name="UttoriDocument"></a>
 
-* * *
+## UttoriDocument
+**Kind**: global typedef  
+**Properties**
 
-## Tests
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| slug | <code>string</code> |  | The unique identifier for the document. |
+| [title] | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | The unique identifier for the document. |
+| [createDate] | <code>number</code> \| <code>Date</code> |  | The creation date of the document. |
+| [updateDate] | <code>number</code> \| <code>Date</code> |  | The last date the document was updated. |
+| [tags] | <code>Array.&lt;string&gt;</code> | <code>[]</code> | The unique identifier for the document. |
+| [customData] | <code>object</code> | <code>{}</code> | Any extra meta data for the document. |
 
-To run the test suite, first install the dependencies, then run `npm test`:
-
-```bash
-npm install
-npm test
-DEBUG=Uttori* npm test
-```
-
-## Contributors
-
-* [Matthew Callis](https://github.com/MatthewCallis)
-
-## License
-
-* [MIT](LICENSE)

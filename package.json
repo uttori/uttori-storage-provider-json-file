@@ -1,11 +1,17 @@
 {
-  "name": "uttori-storage-provider-json-file",
-  "version": "2.4.1-pre",
+  "name": "@uttori/storage-provider-json-file",
+  "version": "3.0.0",
   "description": "Uttori storage provider using JSON files on disk.",
   "author": "Matthew Callis <matthew.callis@gmail.com>",
   "contributors": [],
   "license": "MIT",
-  "repository": "uttori/uttori-storage-provider-json-file",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uttori/uttori-storage-provider-json-file.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uttori/uttori-storage-provider-json-file/issues"
+  },
   "homepage": "https://github.com/uttori/uttori-storage-provider-json-file",
   "keywords": [
     "uttori",
@@ -13,43 +19,51 @@
     "json"
   ],
   "engines": {
-    "node": ">= 10.15.3"
+    "node": ">= 12"
   },
   "dependencies": {
     "debug": "^4.1.1",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.0.1",
     "ramda": "^0.27.0",
     "sanitize-filename": "^1.6.3",
-    "uttori-utilities": "^2.1.0"
+    "uttori-utilities": "^2.3.0"
   },
   "devDependencies": {
-    "ava": "^3.2.0",
-    "coveralls": "^3.0.9",
-    "docsify-cli": "^4.4.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.0.1",
-    "eslint-plugin-ava": "^10.0.1",
-    "eslint-plugin-import": "^2.20.1",
+    "ava": "^3.9.0",
+    "coveralls": "^3.1.0",
+    "docsify-cli": "^4.4.1",
+    "eslint": "^7.2.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-plugin-ava": "^10.3.1",
+    "eslint-plugin-import": "^2.21.2",
+    "eslint-plugin-jsdoc": "^27.0.7",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-no-inferred-method-name": "^2.0.0",
-    "eslint-plugin-node": "^11.0.0",
-    "eslint-plugin-optimize-regex": "^1.1.7",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-optimize-regex": "^1.2.0",
     "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.18.3",
-    "eslint-plugin-react-hooks": "^2.3.0",
+    "eslint-plugin-react": "^7.20.0",
+    "eslint-plugin-react-hooks": "^4.0.4",
     "eslint-plugin-security": "^1.4.0",
-    "eslint-plugin-unicorn": "^16.0.0",
-    "eslint-plugin-xss": "^0.1.9",
-    "jsdoc-to-markdown": "^5.0.3",
-    "nyc": "^15.0.0",
-    "sinon": "^8.1.1",
+    "eslint-plugin-unicorn": "^20.1.0",
+    "eslint-plugin-xss": "^0.1.10",
+    "jsdoc": "^3.6.4",
+    "jsdoc-to-markdown": "^6.0.1",
+    "nyc": "^15.1.0",
+    "pre-commit": "^1.2.2",
+    "release-it": "^13.6.3",
+    "sinon": "^9.0.2",
     "supertest": "^4.0.2",
+    "tsd-jsdoc": "^2.5.0",
     "uttori-document": "^1.4.1"
   },
   "files": [
-    "src/*"
+    "src/*",
+    "types/*"
   ],
   "main": "src/index.js",
+  "types": "types/index.d.ts",
+  "typings": "types/index.d.ts",
   "ava": {
     "files": [
       "test/**/*.test.js"
@@ -72,12 +86,21 @@
     "exclude": []
   },
   "scripts": {
-    "docs": "jsdoc2md --private --example-lang js --template README.hbs src/index.js > README.md; cp README.md docs/README.md",
+    "docs": "jsdoc2md --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --private --example-lang js src/query-tools.js > docs/query-tools.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
+    "make-types": "jsdoc -t node_modules/tsd-jsdoc/dist -r ./src --destination ./; mv types.d.ts types/index.d.ts",
+    "release": "release-it",
     "report": "nyc report --reporter=html",
     "test": "NODE_ENV=test nyc ava --serial --concurrency=1",
-    "test-debug": "DEBUG=Uttori* NODE_ENV=test nyc ava --serial --concurrency=1",
+    "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",
     "validate": "npm ls"
-  }
+  },
+  "directories": {
+    "test": "test"
+  },
+  "pre-commit": [
+    "lint",
+    "test"
+  ]
 }

@@ -9,7 +9,7 @@ const docs = [
     size: 8,
     weight: 10,
     location: 'WA',
-    favorite: null,
+    favorite: undefined,
     tags: ['new', 'cool'],
   },
   {
@@ -35,12 +35,18 @@ const docs = [
 ];
 
 test('process: returns the documents according to the query', (t) => {
-  let query = 'SELECT name FROM table WHERE name IS "No Name" ORDER BY name DESC LIMIT 1';
+  let query = 'SELECT * FROM table WHERE name IS "No Name" ORDER BY name DESC LIMIT 1';
   t.deepEqual(process(query, docs), [docs[2]]);
 
-  query = 'SELECT name FROM table WHERE name IS "No Name" ORDER BY name ASC LIMIT 1';
+  query = 'SELECT * FROM table WHERE name IS "No Name" ORDER BY name ASC LIMIT 1';
   t.deepEqual(process(query, docs), [docs[2]]);
 
-  query = 'SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3';
+  query = 'SELECT * FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3';
+  t.is(process(query, docs).length, 3);
+
+  query = 'SELECT * FROM table WHERE age > 1 ORDER BY RANDOM LIMIT -1';
+  t.is(process(query, docs).length, 3);
+
+  query = 'SELECT * FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 0';
   t.is(process(query, docs).length, 3);
 });
