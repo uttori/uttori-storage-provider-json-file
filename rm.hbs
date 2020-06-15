@@ -13,7 +13,7 @@ This repo exports both a Uttori Plugin compliant `Plugin` class as well as the u
 ## Install
 
 ```bash
-npm install --save uttori-storage-provider-json-file
+npm install --save @uttori/storage-provider-json-file
 ```
 
 # Config
