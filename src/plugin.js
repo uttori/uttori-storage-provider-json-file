@@ -44,7 +44,7 @@ class Plugin {
         get: ['storage-get'],
         getHistory: ['storage-get-history'],
         getRevision: ['storage-get-revision'],
-        query: ['storage-query'],
+        getQuery: ['storage-query'],
         update: ['storage-update'],
         validateConfig: ['validate-config'],
       },
@@ -73,7 +73,7 @@ class Plugin {
    *         get: ['storage-get'],
    *         getHistory: ['storage-get-history'],
    *         getRevision: ['storage-get-revision'],
-   *         query: ['storage-query'],
+   *         getQuery: ['storage-query'],
    *         update: ['storage-update'],
    *         validateConfig: ['validate-config'],
    *       },
@@ -95,7 +95,13 @@ class Plugin {
 
     const storage = new StorageProvider(config);
     Object.keys(config.events).forEach((method) => {
-      config.events[method].forEach((event) => context.hooks.on(event, storage[method]));
+      config.events[method].forEach((event) => {
+        if (typeof storage[method] !== 'function') {
+          debug(`Missing function "${method}" for key "${event}"`);
+          return;
+        }
+        context.hooks.on(event, storage[method]);
+      });
     });
   }
 }
