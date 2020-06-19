@@ -38,10 +38,10 @@ Storage for Uttori documents using JSON files stored on the local file system.
     * [.getQuery(query)](#StorageProvider+getQuery) ⇒ <code>Promise</code>
     * [.get(slug)](#StorageProvider+get) ⇒ <code>Promise</code>
     * [.getHistory(slug)](#StorageProvider+getHistory) ⇒ <code>Promise</code>
-    * [.getRevision(slug, revision)](#StorageProvider+getRevision) ⇒ <code>Promise</code>
+    * [.getRevision(params)](#StorageProvider+getRevision) ⇒ <code>Promise</code>
     * [.add(document)](#StorageProvider+add)
     * [.updateValid(document, originalSlug)](#StorageProvider+updateValid) ℗
-    * [.update(document, originalSlug)](#StorageProvider+update)
+    * [.update(params)](#StorageProvider+update)
     * [.delete(slug)](#StorageProvider+delete)
     * [.refresh()](#StorageProvider+refresh)
     * [.updateHistory(slug, content, [originalSlug])](#StorageProvider+updateHistory)
@@ -115,7 +115,7 @@ Returns the history of edits for a given slug.
 
 <a name="StorageProvider+getRevision"></a>
 
-### storageProvider.getRevision(slug, revision) ⇒ <code>Promise</code>
+### storageProvider.getRevision(params) ⇒ <code>Promise</code>
 Returns a specifc revision from the history of edits for a given slug and revision timestamp.
 
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
@@ -123,8 +123,9 @@ Returns a specifc revision from the history of edits for a given slug and revisi
 
 | Param | Type | Description |
 | --- | --- | --- |
-| slug | <code>string</code> | The slug of the document to be returned. |
-| revision | <code>number</code> | The unix timestamp of the history to be returned. |
+| params | <code>object</code> | The params object. |
+| params.slug | <code>string</code> | The slug of the document to be returned. |
+| params.revision | <code>number</code> | The unix timestamp of the history to be returned. |
 
 <a name="StorageProvider+add"></a>
 
@@ -152,15 +153,16 @@ Updates a document and saves to the file system.
 
 <a name="StorageProvider+update"></a>
 
-### storageProvider.update(document, originalSlug)
+### storageProvider.update(params)
 Updates a document and figures out how to save to the file system.
 
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be updated in the collection. |
-| originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
+| params | <code>object</code> | The params object. |
+| params.document | [<code>UttoriDocument</code>](#UttoriDocument) | The document to be updated in the collection. |
+| params.originalSlug | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
 <a name="StorageProvider+delete"></a>
 

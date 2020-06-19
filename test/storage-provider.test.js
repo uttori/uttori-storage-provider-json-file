@@ -81,7 +81,7 @@ test('all(): returns all the documents', async (t) => {
   t.deepEqual(results, [example]);
 });
 
-test('getQuery(query, documents): returns all unique tags from all the documents', async (t) => {
+test('getQuery(query): returns all unique tags from all the documents', async (t) => {
   const s = new StorageProvider(config);
   await s.add(example);
   await s.add(fake);
@@ -116,7 +116,7 @@ test('getQuery(query, documents): returns all unique tags from all the documents
   t.deepEqual(tags, ['Example Tag', 'Fake']);
 });
 
-test('getQuery(query, documents): returns all unique tags and slug from all the documents', async (t) => {
+test('getQuery(query): returns all unique tags and slug from all the documents', async (t) => {
   const s = new StorageProvider(config);
   await s.add(example);
   await s.add(fake);
@@ -282,7 +282,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
 
   document.title = 'second file-v2';
   document.content = 'second file-v2';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v2');
@@ -293,7 +293,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
 
   document.title = 'second file-v3';
   document.content = 'second file-v3';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v3');
@@ -305,7 +305,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   document.slug = 'second-file-new-directory';
   document.title = 'second file-v4';
   document.content = 'second file-v4';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v4');
@@ -313,25 +313,25 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   t.is(history.length, 4);
 });
 
-test('getRevision(slug, revision): returns undefined when missing a slug', async (t) => {
+test('getRevision({ slug, revision }): returns undefined when missing a slug', async (t) => {
   const s = new StorageProvider(config);
-  const revision = await s.getRevision('');
+  const revision = await s.getRevision({ slug: '' });
   t.is(revision, undefined);
 });
 
-test('getRevision(slug, revision): returns undefined when missing a revision', async (t) => {
+test('getRevision({ slug, revision }): returns undefined when missing a revision', async (t) => {
   const s = new StorageProvider(config);
-  const revision = await s.getRevision('slug', '');
+  const revision = await s.getRevision({ slug: 'slug', revision: '' });
   t.is(revision, undefined);
 });
 
-test('getRevision(slug, revision): returns undefined when no revision is found', async (t) => {
+test('getRevision({ slug, revision }): returns undefined when no revision is found', async (t) => {
   const s = new StorageProvider(config);
-  const revision = await s.getRevision('slug', -1);
+  const revision = await s.getRevision({ slug: 'slug', revision: -1 });
   t.is(revision, undefined);
 });
 
-test('getRevision(slug, revision): returns a specific revision of an article', async (t) => {
+test('getRevision({ slug, revision }): returns a specific revision of an article', async (t) => {
   let all;
   let history;
   await fs.remove('test/site');
@@ -355,7 +355,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
 
   document.title = 'second file-v2';
   document.content = 'second file-v2';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v2');
@@ -366,7 +366,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
 
   document.title = 'second file-v3';
   document.content = 'second file-v3';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v3');
@@ -378,7 +378,7 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   document.slug = 'second-file-new-directory';
   document.title = 'second file-v4';
   document.content = 'second file-v4';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, 'second file-v4');
@@ -389,13 +389,13 @@ test('getRevision(slug, revision): returns a specific revision of an article', a
   t.is(history.length, 4);
 
   let revision;
-  revision = await s.getRevision(document.slug, history[0]);
+  revision = await s.getRevision({ slug: document.slug, revision: history[0] });
   t.is(revision.title, 'second file');
-  revision = await s.getRevision(document.slug, history[1]);
+  revision = await s.getRevision({ slug: document.slug, revision: history[1] });
   t.is(revision.title, 'second file-v2');
-  revision = await s.getRevision(document.slug, history[2]);
+  revision = await s.getRevision({ slug: document.slug, revision: history[2] });
   t.is(revision.title, 'second file-v3');
-  revision = await s.getRevision(document.slug, history[3]);
+  revision = await s.getRevision({ slug: document.slug, revision: history[3] });
   t.is(revision.title, 'second file-v4');
 });
 
@@ -464,21 +464,21 @@ test('add(document): does not create a document with the same slug', async (t) =
   t.is(all.length, 2);
 });
 
-test('update(document, originalSlug): does not update without a document or slug', async (t) => {
+test('update({ document, originalSlug }): does not update without a document or slug', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  await s.update(undefined, 'second-file');
+  await s.update({ document: undefined, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, example.title);
 
-  await s.update({ title: 'New' }, 'second-file');
+  await s.update({ document: { title: 'New' }, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, example.title);
 });
 
-test('update(document, originalSlug): updates the file on disk', async (t) => {
+test('update({ document, originalSlug }): updates the file on disk', async (t) => {
   let all;
   const s = new StorageProvider(config);
   const document = new Document();
@@ -494,13 +494,13 @@ test('update(document, originalSlug): updates the file on disk', async (t) => {
   all = await s.all();
   t.is(all.length, 2);
   document.title = 'second file-v2';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
 });
 
-test('update(document, originalSlug): renames the history directory if it exists', async (t) => {
+test('update({ document, originalSlug }): renames the history directory if it exists', async (t) => {
   let all;
   let history;
   const s = new StorageProvider(config);
@@ -521,7 +521,7 @@ test('update(document, originalSlug): renames the history directory if it exists
 
   document.title = 'second file-v2';
   document.content = 'second file-v2';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -532,7 +532,7 @@ test('update(document, originalSlug): renames the history directory if it exists
 
   document.title = 'second file-v3';
   document.content = 'second file-v3';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -543,7 +543,7 @@ test('update(document, originalSlug): renames the history directory if it exists
   document.slug = 'second-file-new-directory';
   document.title = 'second file-v4';
   document.content = 'second file-v4';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -555,7 +555,7 @@ test('update(document, originalSlug): renames the history directory if it exists
   t.is(fs.existsSync(`${config.history_directory}/second-file`), false);
 });
 
-test('update(document, originalSlug): updates the file on disk with missing fields', async (t) => {
+test('update({ document, originalSlug }): updates the file on disk with missing fields', async (t) => {
   let all;
   const s = new StorageProvider(config);
   const document = new Document();
@@ -569,13 +569,13 @@ test('update(document, originalSlug): updates the file on disk with missing fiel
   all = await s.all();
   t.is(all.length, 2);
   document.title = 'second file-v2';
-  await s.update(document, 'second-file');
+  await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
 });
 
-test('update(document, originalSlug): does not update when file exists', async (t) => {
+test('update({ document, originalSlug }): does not update when file exists', async (t) => {
   let all;
   const s = new StorageProvider(config);
   const document = new Document();
@@ -589,13 +589,13 @@ test('update(document, originalSlug): does not update when file exists', async (
   all = await s.all();
   t.is(all.length, 2);
   document.title = 'second file-v2';
-  await s.update(document, 'example-title');
+  await s.update({ document, originalSlug: 'example-title' });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, 'second file');
 });
 
-test('update(document, originalSlug): adds a document if the one to update is no found', async (t) => {
+test('update({ document, originalSlug }): adds a document if the one to update is no found', async (t) => {
   const s = new StorageProvider(config);
   const document = new Document();
   document.content = '';
@@ -606,7 +606,7 @@ test('update(document, originalSlug): adds a document if the one to update is no
   document.tags = [];
   document.title = 'third file';
   document.updateDate = 1;
-  await s.update(document, '');
+  await s.update({ document, originalSlug: '' });
   const all = await s.all();
   t.is(all.length, 2);
 });
@@ -651,7 +651,7 @@ test('delete(document): does nothing when no file is found', async (t) => {
   t.is(all.length, 2);
 });
 
-test('getQuery(documents, _fields): returns all matching documents with an array of slugs', async (t) => {
+test('getQuery(query): returns all matching documents with an array of slugs', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
   await s.add(empty);

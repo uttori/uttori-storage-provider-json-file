@@ -144,11 +144,15 @@ declare class StorageProvider {
     getHistory(slug: string): Promise;
     /**
      * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
-     * @param slug - The slug of the document to be returned.
-     * @param revision - The unix timestamp of the history to be returned.
+     * @param params - The params object.
+     * @param params.slug - The slug of the document to be returned.
+     * @param params.revision - The unix timestamp of the history to be returned.
      * @returns Promise object represents the returned revision of the document.
      */
-    getRevision(slug: string, revision: number): Promise;
+    getRevision(params: {
+        slug: string;
+        revision: number;
+    }): Promise;
     /**
      * Saves a document to the file system.
      * @param document - The document to be added to the collection.
@@ -156,10 +160,14 @@ declare class StorageProvider {
     add(document: UttoriDocument): void;
     /**
      * Updates a document and figures out how to save to the file system.
-     * @param document - The document to be updated in the collection.
-     * @param originalSlug - The original slug identifying the document, or the slug if it has not changed.
+     * @param params - The params object.
+     * @param params.document - The document to be updated in the collection.
+     * @param params.originalSlug - The original slug identifying the document, or the slug if it has not changed.
      */
-    update(document: UttoriDocument, originalSlug: string): void;
+    update(params: {
+        document: UttoriDocument;
+        originalSlug: string;
+    }): void;
     /**
      * Removes a document from the file system.
      * @param slug - The slug identifying the document.

@@ -91,7 +91,6 @@ class StorageProvider {
    * @example
    * storageProvider.all();
    * ➜ [{ slug: 'first-document', ... }, ...]
-   * @memberof StorageProvider
    */
   async all() {
     debug('all');
@@ -104,7 +103,6 @@ class StorageProvider {
    * @async
    * @param {string} query - The conditions on which documents should be returned.
    * @returns {Promise} Promise object represents all matching documents.
-   * @memberof StorageProvider
    */
   async getQuery(query) {
     debug('getQuery:', query);
@@ -118,7 +116,6 @@ class StorageProvider {
    * @async
    * @param {string} slug - The slug of the document to be returned.
    * @returns {Promise} Promise object represents the returned UttoriDocument.
-   * @memberof StorageProvider
    */
   async get(slug) {
     debug('get', slug);
@@ -145,7 +142,6 @@ class StorageProvider {
    * @async
    * @param {string} slug - The slug of the document to get history for.
    * @returns {Promise} Promise object represents the returned history.
-   * @memberof StorageProvider
    */
   async getHistory(slug) {
     debug('getHistory', slug);
@@ -161,12 +157,12 @@ class StorageProvider {
    * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
    *
    * @async
-   * @param {string} slug - The slug of the document to be returned.
-   * @param {number} revision - The unix timestamp of the history to be returned.
+   * @param {object} params - The params object.
+   * @param {string} params.slug - The slug of the document to be returned.
+   * @param {number} params.revision - The unix timestamp of the history to be returned.
    * @returns {Promise} Promise object represents the returned revision of the document.
-   * @memberof StorageProvider
    */
-  async getRevision(slug, revision) {
+  async getRevision({ slug, revision }) {
     debug('getRevision', slug, revision);
     if (!slug) {
       debug('Cannot get document history without slug.', slug);
@@ -189,7 +185,6 @@ class StorageProvider {
    *
    * @async
    * @param {UttoriDocument} document - The document to be added to the collection.
-   * @memberof StorageProvider
    */
   async add(document) {
     debug('add');
@@ -220,7 +215,6 @@ class StorageProvider {
    * @private
    * @param {UttoriDocument} document - The document to be updated in the collection.
    * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
-   * @memberof StorageProvider
    */
   async updateValid(document, originalSlug) {
     debug('updateValid');
@@ -236,11 +230,11 @@ class StorageProvider {
    * Updates a document and figures out how to save to the file system.
    *
    * @async
-   * @param {UttoriDocument} document - The document to be updated in the collection.
-   * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
-   * @memberof StorageProvider
+   * @param {object} params - The params object.
+   * @param {UttoriDocument} params.document - The document to be updated in the collection.
+   * @param {string} params.originalSlug - The original slug identifying the document, or the slug if it has not changed.
    */
-  async update(document, originalSlug) {
+  async update({ document, originalSlug }) {
     debug('Update:', document, originalSlug);
     if (!document || !document.slug) {
       debug('Cannot update, missing slug.');
@@ -269,7 +263,6 @@ class StorageProvider {
    *
    * @async
    * @param {string} slug - The slug identifying the document.
-   * @memberof StorageProvider
    */
   async delete(slug) {
     debug('delete:', slug);
@@ -290,7 +283,6 @@ class StorageProvider {
    * Reloads all documents from the file system into the cache.
    *
    * @async
-   * @memberof StorageProvider
    */
   async refresh() {
     debug('refresh');
@@ -320,7 +312,6 @@ class StorageProvider {
    * @param {string} slug - The slug of the document to update history for.
    * @param {string} content - The revision of the document to be saved.
    * @param {string} [originalSlug] - The original slug identifying the document, or the slug if it has not changed.
-   * @memberof StorageProvider
    */
   async updateHistory(slug, content, originalSlug) {
     debug('updateHistory', slug, content, originalSlug);
