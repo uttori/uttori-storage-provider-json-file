@@ -1,8 +1,8 @@
-/* eslint-disable security/detect-non-literal-fs-filename */
+// @ts-nocheck
 const fs = require('fs-extra');
 const test = require('ava');
 const { EventDispatcher } = require('uttori-utilities');
-const StorageProviderJSONFile = require('../src/plugin.js');
+const Plugin = require('../src/plugin.js');
 
 const config = {
   content_directory: 'test/site/content',
@@ -21,29 +21,47 @@ test.afterEach.always(async () => {
   await fs.remove('test/site');
 });
 
-test('StorageProviderJSONFile.register(context): can register', (t) => {
+test('Plugin.register(context): can register', (t) => {
   t.notThrows(() => {
-    StorageProviderJSONFile.register({ hooks: { on: () => {} }, config: { [StorageProviderJSONFile.configKey]: { ...config, events: { callback: [] } } } });
+    Plugin.register({ hooks: { on: () => {} }, config: { [Plugin.configKey]: { ...config, events: { callback: [] } } } });
   });
 });
 
-test('StorageProviderJSONFile.register(context): errors without event dispatcher', (t) => {
+test('Plugin.register(context): does not error with events corresponding to missing methods', async (t) => {
+  await t.notThrowsAsync(async () => {
+    await Plugin.register({
+      hooks: {
+        on: () => {},
+      },
+      config: {
+        [Plugin.configKey]: {
+          ...config,
+          events: {
+            test: ['test'],
+          },
+        },
+      },
+    });
+  });
+});
+
+test('Plugin.register(context): errors without event dispatcher', (t) => {
   t.throws(() => {
-    StorageProviderJSONFile.register({ hooks: {} });
+    Plugin.register({ hooks: {} });
   }, { message: 'Missing event dispatcher in \'context.hooks.on(event, callback)\' format.' });
 });
 
-test('StorageProviderJSONFile.register(context): errors without events', (t) => {
+test('Plugin.register(context): errors without events', (t) => {
   t.throws(() => {
-    StorageProviderJSONFile.register({ hooks: { on: () => {} }, config: { [StorageProviderJSONFile.configKey]: { events: undefined } } });
+    Plugin.register({ hooks: { on: () => {} }, config: { [Plugin.configKey]: { events: undefined } } });
   }, { message: 'Missing events to listen to for in \'config.events\'.' });
 });
 
-test('StorageProviderJSONFile.defaultConfig(): can return a default config', (t) => {
-  t.notThrows(StorageProviderJSONFile.defaultConfig);
+test('Plugin.defaultConfig(): can return a default config', (t) => {
+  t.notThrows(Plugin.defaultConfig);
 });
 
-test('StorageProviderJSONFile.get(viewModel, context): can return a document', async (t) => {
+test('Plugin.get(viewModel, context): can return a document', async (t) => {
   t.plan(1);
   const document = {
     updateDate: new Date('2020-04-20').toISOString(),
@@ -57,7 +75,7 @@ test('StorageProviderJSONFile.get(viewModel, context): can return a document', a
   const context = {
     hooks,
     config: {
-      [StorageProviderJSONFile.configKey]: {
+      [Plugin.configKey]: {
         ...config,
         events: {
           add: ['storage-add'],
@@ -66,7 +84,7 @@ test('StorageProviderJSONFile.get(viewModel, context): can return a document', a
       },
     },
   };
-  StorageProviderJSONFile.register(context);
+  Plugin.register(context);
 
   await context.hooks.filter('storage-add', document);
   const output = await context.hooks.filter('storage-get', document.slug);

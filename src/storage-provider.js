@@ -39,6 +39,8 @@ class StorageProvider {
  * @param {string} config.content_directory - The directory to store documents.
  * @param {string} config.history_directory - The directory to store document histories.
  * @param {string} [config.extension=json] - The file extension to use for file, name of the employee.
+ * @param {boolean} [config.update_timestamps=true] - Should update times be marked at the time of edit.
+ * @param {boolean} [config.use_history=true] - Should history entries be created.
  * @param {number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
  * @param {number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
  * @class
@@ -62,6 +64,8 @@ class StorageProvider {
       extension: 'json',
       spaces_document: undefined,
       spaces_history: undefined,
+      update_timestamps: true,
+      use_history: true,
       ...config,
     };
 
@@ -176,6 +180,7 @@ class StorageProvider {
     const document = await FileUtility.readJSON(folder, `${revision}`, this.config.extension);
     if (!document) {
       debug(`Document history not found for "${slug}", with revision "${revision}"`);
+      return undefined;
     }
     return document;
   }
@@ -200,7 +205,9 @@ class StorageProvider {
       document.updateDate = document.createDate;
       document.tags = R.isEmpty(document.tags) ? [] : document.tags;
       document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-      await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history));
+      if (this.config.use_history) {
+        await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history));
+      }
       await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, undefined, this.config.spaces_document));
       await this.refresh();
     } else {
@@ -218,12 +225,19 @@ class StorageProvider {
    */
   async updateValid(document, originalSlug) {
     debug('updateValid');
-    document.updateDate = Date.now();
+    if (this.config.update_timestamps) {
+      document.updateDate = Date.now();
+    }
+    /* istanbul ignore next */
     document.tags = R.isEmpty(document.tags) ? [] : document.tags;
+    /* istanbul ignore next */
     document.customData = R.isEmpty(document.customData) ? {} : document.customData;
-    await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history), originalSlug);
+    if (this.config.use_history) {
+      await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history), originalSlug);
+    }
     await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, undefined, this.config.spaces_document));
     await this.refresh();
+    debug('updateValid complete');
   }
 
   /**
@@ -235,19 +249,22 @@ class StorageProvider {
    * @param {string} params.originalSlug - The original slug identifying the document, or the slug if it has not changed.
    */
   async update({ document, originalSlug }) {
-    debug('Update:', document, originalSlug);
+    debug('update');
     if (!document || !document.slug) {
       debug('Cannot update, missing slug.');
       return;
     }
     debug('update:', document.slug, originalSlug);
     const existing = await this.get(document.slug);
-    const original = await this.get(originalSlug);
+    const original = originalSlug ? await this.get(originalSlug) : undefined;
     if (existing && original && original.slug !== existing.slug) {
       debug(`Cannot update, existing document with slug "${originalSlug}"!`);
     } else if (existing && original && original.slug === existing.slug) {
       debug(`Updating document with slug "${document.slug}"`);
       await this.updateValid(document, originalSlug);
+    } else if (existing && !original) {
+      debug(`Updating document with slug "${document.slug}" but no originalSlug`);
+      await this.updateValid(document, document.slug);
     } else if (!existing && original) {
       debug(`Updating document with slug from "${originalSlug}" to "${document.slug}"`);
       await FileUtility.deleteFile(this.config.content_directory, originalSlug, this.config.extension);
@@ -269,7 +286,9 @@ class StorageProvider {
     const existing = await this.get(slug);
     if (existing) {
       debug('Document found, deleting document:', slug);
-      await this.updateHistory(existing.slug, JSON.stringify(existing, undefined, this.config.spaces_history));
+      if (this.config.use_history) {
+        await this.updateHistory(existing.slug, JSON.stringify(existing, undefined, this.config.spaces_history));
+      }
       await FileUtility.deleteFile(this.config.content_directory, slug, this.config.extension);
       await this.refresh();
     } else {

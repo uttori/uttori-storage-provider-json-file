@@ -1,7 +1,6 @@
 const fs = require('fs-extra');
 const test = require('ava');
 const R = require('ramda');
-const Document = require('uttori-document');
 const { StorageProvider } = require('../src');
 
 const config = {
@@ -10,6 +9,8 @@ const config = {
   extension: 'json',
   spaces_document: undefined,
   spaces_history: undefined,
+  update_timestamps: true,
+  use_history: true,
 };
 
 const example = {
@@ -264,7 +265,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   await fs.remove('test/site');
 
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = { test: true };
@@ -337,7 +338,7 @@ test('getRevision({ slug, revision }): returns a specific revision of an article
   await fs.remove('test/site');
 
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = { test: true };
@@ -412,7 +413,24 @@ test('add(document): cannot add without a document or a slug', async (t) => {
 
 test('add(document): creates a new document', async (t) => {
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
+  document.content = '';
+  document.createDate = undefined;
+  document.customData = {};
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = [];
+  document.title = 'second file';
+  document.updateDate = undefined;
+  await s.add(document);
+  const all = await s.all();
+  t.deepEqual(all[0], example);
+  t.is(all[1].slug, document.slug);
+});
+
+test('add(document): creates a new document without saving a history', async (t) => {
+  const s = new StorageProvider({ ...config, use_history: false });
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = {};
@@ -429,7 +447,7 @@ test('add(document): creates a new document', async (t) => {
 
 test('add(document): creates a new document with missing fields', async (t) => {
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.html = '';
@@ -445,7 +463,7 @@ test('add(document): creates a new document with missing fields', async (t) => {
 test('add(document): does not create a document with the same slug', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = {};
@@ -481,7 +499,7 @@ test('update({ document, originalSlug }): does not update without a document or 
 test('update({ document, originalSlug }): updates the file on disk', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = { test: true };
@@ -497,14 +515,38 @@ test('update({ document, originalSlug }): updates the file on disk', async (t) =
   await s.update({ document, originalSlug: 'second-file' });
   all = await s.all();
   t.is(all.length, 2);
-  t.is(all[1].title, document.title);
+  const output = await s.get('second-file');
+  t.is(output.title, document.title);
+});
+
+test('update({ document, originalSlug }): updates the file on disk without an originalSlug', async (t) => {
+  let all;
+  const s = new StorageProvider({ ...config, use_history: false });
+  const document = {};
+  document.content = '';
+  document.createDate = undefined;
+  document.customData = { test: true };
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = ['test'];
+  document.title = 'second file';
+  document.updateDate = undefined;
+  await s.add(document);
+  all = await s.all();
+  t.is(all.length, 2);
+  document.title = 'second file-v2';
+  await s.update({ document, originalSlug: undefined });
+  all = await s.all();
+  t.is(all.length, 2);
+  const output = await s.get('second-file');
+  t.is(output.title, document.title);
 });
 
 test('update({ document, originalSlug }): renames the history directory if it exists', async (t) => {
   let all;
   let history;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = { test: true };
@@ -558,7 +600,7 @@ test('update({ document, originalSlug }): renames the history directory if it ex
 test('update({ document, originalSlug }): updates the file on disk with missing fields', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.html = '';
@@ -578,7 +620,7 @@ test('update({ document, originalSlug }): updates the file on disk with missing 
 test('update({ document, originalSlug }): does not update when file exists', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.html = '';
@@ -597,7 +639,7 @@ test('update({ document, originalSlug }): does not update when file exists', asy
 
 test('update({ document, originalSlug }): adds a document if the one to update is no found', async (t) => {
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = 1;
   document.customData = {};
@@ -611,10 +653,74 @@ test('update({ document, originalSlug }): adds a document if the one to update i
   t.is(all.length, 2);
 });
 
+test('update({ document, originalSlug }): updates the file on disk without updating timestamps', async (t) => {
+  let all;
+  const s = new StorageProvider({ ...config, update_timestamps: false });
+  const document = {};
+  document.content = '';
+  document.createDate = undefined;
+  document.customData = { test: true };
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = ['test'];
+  document.title = 'second file';
+  document.updateDate = undefined;
+  await s.add(document);
+  all = await s.all();
+  t.is(all.length, 2);
+  document.title = 'second file-v2';
+  await s.update({ document, originalSlug: 'second-file' });
+  all = await s.all();
+  t.is(all.length, 2);
+  t.deepEqual(all[1], document);
+});
+
+test('update({ document, originalSlug }): updates the file on disk without updating history', async (t) => {
+  let all;
+  const s = new StorageProvider({ ...config, update_timestamps: false, use_history: false });
+  const document = {};
+  document.content = '';
+  document.createDate = undefined;
+  document.customData = { test: true };
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = ['test'];
+  document.title = 'second file';
+  document.updateDate = undefined;
+  await s.add(document);
+  all = await s.all();
+  t.is(all.length, 2);
+  document.title = 'second file-v2';
+  await s.update({ document, originalSlug: 'second-file' });
+  all = await s.all();
+  t.is(all.length, 2);
+  t.deepEqual(all[1], document);
+});
+
 test('delete(document): removes the file from disk', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
+  document.content = '';
+  document.createDate = 1;
+  document.customData = {};
+  document.html = '';
+  document.slug = 'second-file';
+  document.tags = [];
+  document.title = 'second file';
+  document.updateDate = 1;
+  await s.add(document);
+  all = await s.all();
+  t.is(all.length, 2);
+  await s.delete(document.slug);
+  all = await s.all();
+  t.is(all.length, 1);
+});
+
+test('delete(document): removes the file from disk without history', async (t) => {
+  let all;
+  const s = new StorageProvider({ ...config, use_history: false });
+  const document = {};
   document.content = '';
   document.createDate = 1;
   document.customData = {};
@@ -634,7 +740,7 @@ test('delete(document): removes the file from disk', async (t) => {
 test('delete(document): does nothing when no file is found', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = new Document();
+  const document = {};
   document.content = '';
   document.createDate = undefined;
   document.customData = {};

@@ -52,8 +52,7 @@
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
     "release-it": "^13.6.3",
-    "tsd-jsdoc": "^2.5.0",
-    "uttori-document": "^1.4.1"
+    "tsd-jsdoc": "^2.5.0"
   },
   "files": [
     "src/*",
@@ -91,7 +90,7 @@
     "release": "release-it",
     "report": "nyc report --reporter=html",
     "test": "NODE_ENV=test nyc ava --serial --concurrency=1",
-    "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",
+    "test-debug": "DEBUG=Uttori.StorageProvider* NODE_ENV=test ava --serial --concurrency=1",
     "validate": "npm ls"
   },
   "directories": {
