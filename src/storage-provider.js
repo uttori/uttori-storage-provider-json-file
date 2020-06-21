@@ -5,7 +5,7 @@ const sanitize = require('sanitize-filename');
 const R = require('ramda');
 const path = require('path');
 const { FileUtility } = require('uttori-utilities');
-const { process } = require('./query-tools');
+const { processQuery } = require('./query-tools');
 
 /**
  * @typedef UttoriDocument The document object we store, with only the minimum methods we access listed.
@@ -111,7 +111,7 @@ class StorageProvider {
   async getQuery(query) {
     debug('getQuery:', query);
     const all = await this.all();
-    return process(query, all);
+    return processQuery(query, all);
   }
 
   /**

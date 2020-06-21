@@ -10,10 +10,10 @@ const { parseQueryToRamda, validateQuery, fyShuffle } = require('uttori-utilitie
  * @param {object[]} objects - An array of object to search within.
  * @returns {object[]} Returns an array of all matched documents.
  * @example
- * process('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
+ * processQuery('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
  * ➜ [{ ... }, ...]
  */
-const process = (query, objects) => {
+const processQuery = (query, objects) => {
   debug('Processing Query:', query);
   // Filter
   const { fields, where, order, limit } = validateQuery(query);
@@ -73,5 +73,5 @@ const process = (query, objects) => {
 };
 
 module.exports = {
-  process,
+  processQuery,
 };

@@ -1,5 +1,6 @@
+// @ts-nocheck
 const test = require('ava');
-const { process } = require('../src/query-tools');
+const { processQuery } = require('../src/query-tools');
 
 const docs = [
   {
@@ -36,17 +37,17 @@ const docs = [
 
 test('process: returns the documents according to the query', (t) => {
   let query = 'SELECT * FROM table WHERE name IS "No Name" ORDER BY name DESC LIMIT 1';
-  t.deepEqual(process(query, docs), [docs[2]]);
+  t.deepEqual(processQuery(query, docs), [docs[2]]);
 
   query = 'SELECT * FROM table WHERE name IS "No Name" ORDER BY name ASC LIMIT 1';
-  t.deepEqual(process(query, docs), [docs[2]]);
+  t.deepEqual(processQuery(query, docs), [docs[2]]);
 
   query = 'SELECT * FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3';
-  t.is(process(query, docs).length, 3);
+  t.is(processQuery(query, docs).length, 3);
 
   query = 'SELECT * FROM table WHERE age > 1 ORDER BY RANDOM LIMIT -1';
-  t.is(process(query, docs).length, 3);
+  t.is(processQuery(query, docs).length, 3);
 
   query = 'SELECT * FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 0';
-  t.is(process(query, docs).length, 3);
+  t.is(processQuery(query, docs).length, 3);
 });

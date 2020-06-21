@@ -1,3 +1,4 @@
+// @ts-nocheck
 const test = require('ava');
 const { Plugin, StorageProvider } = require('../src');
 

@@ -1,7 +1,7 @@
 // @ts-nocheck
 const fs = require('fs-extra');
 const test = require('ava');
-const { EventDispatcher } = require('uttori-utilities');
+const { EventDispatcher } = require('@uttori/event-dispatcher');
 const Plugin = require('../src/plugin.js');
 
 const config = {
