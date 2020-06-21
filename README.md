@@ -25,6 +25,8 @@ npm install --save @uttori/storage-provider-json-file
   extension: 'json',
   spaces_document: null,
   spaces_history: null,
+  update_timestamps: true,
+  use_history: true,
   // Registration Events
   events: {
     add: ['storage-add'],
@@ -134,6 +136,8 @@ Creates an instance of StorageProvider.
 | config.content_directory | <code>string</code> |  | The directory to store documents. |
 | config.history_directory | <code>string</code> |  | The directory to store document histories. |
 | [config.extension] | <code>string</code> | <code>&quot;json&quot;</code> | The file extension to use for file, name of the employee. |
+| [config.update_timestamps] | <code>boolean</code> | <code>true</code> | Should update times be marked at the time of edit. |
+| [config.use_history] | <code>boolean</code> | <code>true</code> | Should history entries be created. |
 | [config.spaces_document] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
 | [config.spaces_history] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
 
