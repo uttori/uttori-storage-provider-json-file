@@ -23,9 +23,9 @@ const { processQuery } = require('./query-tools');
  * @property {object} config - The configuration object.
  * @property {string} config.content_directory - The directory to store documents.
  * @property {string} config.history_directory - The directory to store document histories.
- * @property {string} config.extension='json' - The file extension to use for file, name of the employee.
- * @property {number} config.spaces_document=undefined - The spaces parameter for JSON stringifying documents.
- * @property {number} config.spaces_history=undefined - The spaces parameter for JSON stringifying history.
+ * @property {string} [config.extension='json'] - The file extension to use for file, name of the employee.
+ * @property {number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
+ * @property {number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
  * @property {UttoriDocument[]} documents - The collection of documents.
  * @example <caption>Init StorageProvider</caption>
  * const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });

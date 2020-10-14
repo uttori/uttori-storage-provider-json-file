@@ -64,13 +64,13 @@ declare class Plugin {
 /**
  * Processes a query string.
  * @example
- * process('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
+ * processQuery('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
  * ➜ [{ ... }, ...]
  * @param query - The SQL-like query to parse.
  * @param objects - An array of object to search within.
  * @returns Returns an array of all matched documents.
  */
-declare function process(query: string, objects: object[]): object[];
+declare function processQuery(query: string, objects: object[]): object[];
 
 /**
  * @property slug - The unique identifier for the document.
@@ -97,14 +97,16 @@ declare type UttoriDocument = {
  * @property config - The configuration object.
  * @property config.content_directory - The directory to store documents.
  * @property config.history_directory - The directory to store document histories.
- * @property config.extension - The file extension to use for file, name of the employee.
- * @property config.spaces_document - The spaces parameter for JSON stringifying documents.
- * @property config.spaces_history - The spaces parameter for JSON stringifying history.
+ * @property [config.extension = 'json'] - The file extension to use for file, name of the employee.
+ * @property [config.spaces_document] - The spaces parameter for JSON stringifying documents.
+ * @property [config.spaces_history] - The spaces parameter for JSON stringifying history.
  * @property documents - The collection of documents.
  * @param config - A configuration object.
  * @param config.content_directory - The directory to store documents.
  * @param config.history_directory - The directory to store document histories.
  * @param [config.extension = json] - The file extension to use for file, name of the employee.
+ * @param [config.update_timestamps = true] - Should update times be marked at the time of edit.
+ * @param [config.use_history = true] - Should history entries be created.
  * @param [config.spaces_document] - The spaces parameter for JSON stringifying documents.
  * @param [config.spaces_history] - The spaces parameter for JSON stringifying history.
  */
@@ -113,6 +115,8 @@ declare class StorageProvider {
         content_directory: string;
         history_directory: string;
         extension?: string;
+        update_timestamps?: boolean;
+        use_history?: boolean;
         spaces_document?: number;
         spaces_history?: number;
     });
@@ -190,9 +194,9 @@ declare class StorageProvider {
     config: {
         content_directory: string;
         history_directory: string;
-        extension: string;
-        spaces_document: number;
-        spaces_history: number;
+        extension?: string;
+        spaces_document?: number;
+        spaces_history?: number;
     };
     /**
      * The collection of documents.

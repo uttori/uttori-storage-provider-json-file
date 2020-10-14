@@ -26,9 +26,9 @@ Storage for Uttori documents using JSON files stored on the local file system.
 | config | <code>object</code> |  | The configuration object. |
 | config.content_directory | <code>string</code> |  | The directory to store documents. |
 | config.history_directory | <code>string</code> |  | The directory to store document histories. |
-| config.extension | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file, name of the employee. |
-| config.spaces_document | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
-| config.spaces_history | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
+| [config.extension] | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file, name of the employee. |
+| [config.spaces_document] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
+| [config.spaces_history] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
 | documents | [<code>Array.&lt;UttoriDocument&gt;</code>](#UttoriDocument) |  | The collection of documents. |
 
 

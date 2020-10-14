@@ -1,6 +1,6 @@
-<a name="process"></a>
+<a name="processQuery"></a>
 
-## process(query, objects) ⇒ <code>Array.&lt;object&gt;</code>
+## processQuery(query, objects) ⇒ <code>Array.&lt;object&gt;</code>
 Processes a query string.
 
 **Kind**: global function  
@@ -13,6 +13,6 @@ Processes a query string.
 
 **Example**  
 ```js
-process('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
+processQuery('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
 ➜ [{ ... }, ...]
 ```
