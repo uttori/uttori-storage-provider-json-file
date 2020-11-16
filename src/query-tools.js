@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-fn-reference-in-iterator */
+/* eslint-disable unicorn/no-fn-reference-in-iterator, unicorn/prefer-ternary */
 const debug = require('debug')('Uttori.StorageProvider.JSON.QueryTools');
 const R = require('ramda');
 const { parseQueryToRamda, validateQuery, fyShuffle } = require('uttori-utilities');
