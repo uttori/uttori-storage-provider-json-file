@@ -23,17 +23,19 @@
   },
   "dependencies": {
     "@uttori/event-dispatcher": "^1.0.3",
-    "debug": "^4.2.0",
     "fs-extra": "^9.0.1",
     "ramda": "^0.27.1",
     "sanitize-filename": "^1.6.3",
     "uttori-utilities": "^2.3.0"
   },
+  "optionalDependencies": {
+    "debug": "^4.3.1"
+  },
   "devDependencies": {
     "ava": "^3.13.0",
     "coveralls": "^3.1.0",
-    "docsify-cli": "^4.4.1",
-    "eslint": "^7.13.0",
+    "docsify-cli": "^4.4.2",
+    "eslint": "^7.14.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-ava": "^11.0.0",
     "eslint-plugin-import": "^2.22.1",
@@ -52,8 +54,8 @@
     "jsdoc-to-markdown": "^6.0.1",
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
-    "release-it": "^14.2.1",
-    "typescript": "^4.0.5"
+    "release-it": "^14.2.2",
+    "typescript": "^4.1.2"
   },
   "files": [
     "src/*",

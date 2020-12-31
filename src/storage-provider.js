@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/no-fn-reference-in-iterator */
-const debug = require('debug')('Uttori.StorageProvider.JSON');
+let debug = () => {}; try { debug = require('debug')('Uttori.StorageProvider.JSON'); } catch {}
 const fs = require('fs-extra');
 const sanitize = require('sanitize-filename');
 const R = require('ramda');

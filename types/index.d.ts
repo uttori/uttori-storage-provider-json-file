@@ -69,6 +69,6 @@ declare module "plugin" {
     }
 }
 declare module "index" {
-    export const StorageProvider: typeof import("storage-provider");
     export const Plugin: typeof import("plugin");
+    export const StorageProvider: typeof import("storage-provider");
 }

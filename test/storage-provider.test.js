@@ -556,6 +556,7 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   document.tags = ['test'];
   document.title = 'second file';
   document.updateDate = undefined;
+
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
@@ -568,6 +569,7 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
+
   await s.refresh();
   // TODO Sometimes returns 1, not 2.
   history = await s.getHistory(document.slug);

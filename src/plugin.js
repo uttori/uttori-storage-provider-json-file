@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/no-fn-reference-in-iterator */
-const debug = require('debug')('Uttori.Plugin.StorageProvider.JSON');
+let debug = () => {}; try { debug = require('debug')('Uttori.Plugin.StorageProvider.JSON'); } catch {}
 const StorageProvider = require('./storage-provider');
 
 /**
