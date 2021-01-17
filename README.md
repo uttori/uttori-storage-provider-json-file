@@ -50,6 +50,14 @@ npm install --save @uttori/storage-provider-json-file
 # Example
 
 ```js
+// When part of UttoriWiki:
+import { Plugin as StorageProviderJSON } from '@uttori/storage-provider-json-file';
+// or
+const { Plugin: StorageProviderJSON } = require('@uttori/storage-provider-json-file');
+
+// When stand alone:
+import StorageProvider from '@uttori/storage-provider-json-file';
+// or
 const { StorageProvider } = require('@uttori/storage-provider-json-file');
 const s = new StorageProvider({
   content_directory: 'example/content',
@@ -76,6 +84,8 @@ const results = await s.getQuery('SELECT tags FROM documents WHERE slug IS_NOT_N
 ➜  results === [
       { tags: ['Example Tag'] },
     ]
+const results = s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
+➜  results === 1
 ```
 
 # API Reference
@@ -291,7 +301,6 @@ Updates History for a given slug, renaming the store file and history folder as 
 | [createDate] | <code>number</code> \| <code>Date</code> |  | The creation date of the document. |
 | [updateDate] | <code>number</code> \| <code>Date</code> |  | The last date the document was updated. |
 | [tags] | <code>Array.&lt;string&gt;</code> | <code>[]</code> | The unique identifier for the document. |
-| [customData] | <code>object</code> | <code>{}</code> | Any extra meta data for the document. |
 
 
 * * *

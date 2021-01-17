@@ -50,7 +50,6 @@ declare module "storage-provider" {
         createDate?: number | Date;
         updateDate?: number | Date;
         tags?: string[];
-        customData?: object;
     };
 }
 declare module "plugin" {

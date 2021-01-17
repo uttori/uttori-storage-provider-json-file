@@ -14,7 +14,6 @@ const { processQuery } = require('./query-tools');
  * @property {number|Date} [createDate] The creation date of the document.
  * @property {number|Date} [updateDate] The last date the document was updated.
  * @property {string[]} [tags=[]] The unique identifier for the document.
- * @property {object} [customData={}] Any extra meta data for the document.
  */
 
 /**

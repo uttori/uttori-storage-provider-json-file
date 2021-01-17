@@ -4,6 +4,16 @@ const test = require('ava');
 const R = require('ramda');
 const { StorageProvider } = require('../src');
 
+const tagExample = 'Example Tag';
+const tagFake = 'Fake';
+const exampleSlug = 'example-title';
+const secondFile = 'second-file';
+const secondFileNewDirectory = 'second-file-new-directory';
+const secondFileV1 = 'second file';
+const secondFileV2 = 'second file-v2';
+const secondFileV3 = 'second file-v3';
+const secondFileV4 = 'second file-v4';
+
 const config = {
   content_directory: 'test/site/content',
   history_directory: 'test/site/content/history',
@@ -16,12 +26,12 @@ const config = {
 
 const example = {
   title: 'Example Title',
-  slug: 'example-title',
+  slug: exampleSlug,
   content: '## Example Title',
   html: '',
   updateDate: 1459310452001,
   createDate: 1459310452001,
-  tags: ['Example Tag'],
+  tags: [tagExample],
   customData: {
     keyA: 'value-a',
     keyB: 'value-b',
@@ -36,18 +46,18 @@ const empty = {
   html: '',
   updateDate: 1459310452002,
   createDate: 1459310452002,
-  tags: ['Fake'],
+  tags: [tagFake],
   customData: {},
 };
 
 const fake = {
-  title: 'Fake',
+  title: tagFake,
   slug: 'fake',
   content: '# Fake',
   html: '',
   updateDate: 1459310452002,
   createDate: 1459310452002,
-  tags: ['Example Tag', 'Fake'],
+  tags: [tagExample, tagFake],
   customData: {},
 };
 
@@ -92,18 +102,18 @@ test('getQuery(query): returns all unique tags from all the documents', async (t
   t.deepEqual(results, [
     {
       tags: [
-        'Fake',
+        tagFake,
       ],
     },
     {
       tags: [
-        'Example Tag',
+        tagExample,
       ],
     },
     {
       tags: [
-        'Example Tag',
-        'Fake',
+        tagExample,
+        tagFake,
       ],
     },
   ]);
@@ -115,7 +125,7 @@ test('getQuery(query): returns all unique tags from all the documents', async (t
     R.filter(Boolean),
     R.sort((a, b) => a.localeCompare(b)),
   )(results);
-  t.deepEqual(tags, ['Example Tag', 'Fake']);
+  t.deepEqual(tags, [tagExample, tagFake]);
 });
 
 test('getQuery(query): returns all unique tags and slug from all the documents', async (t) => {
@@ -128,20 +138,20 @@ test('getQuery(query): returns all unique tags and slug from all the documents',
     {
       slug: 'empty',
       tags: [
-        'Fake',
+        tagFake,
       ],
     },
     {
-      slug: 'example-title',
+      slug: exampleSlug,
       tags: [
-        'Example Tag',
+        tagExample,
       ],
     },
     {
       slug: 'fake',
       tags: [
-        'Example Tag',
-        'Fake',
+        tagExample,
+        tagFake,
       ],
     },
   ]);
@@ -153,7 +163,7 @@ test('getQuery(query): returns all unique tags and slug from all the documents',
     R.filter(Boolean),
     R.sort((a, b) => a.localeCompare(b)),
   )(results);
-  t.deepEqual(tags, ['Example Tag', 'Fake']);
+  t.deepEqual(tags, [tagExample, tagFake]);
 });
 
 test('getQuery(query): returns documents with the given tag', async (t) => {
@@ -161,12 +171,12 @@ test('getQuery(query): returns documents with the given tag', async (t) => {
   await s.add(fake);
   await s.add(empty);
 
-  let tag = 'Example Tag';
+  let tag = tagExample;
   let query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
   let output = await s.getQuery(query);
   t.deepEqual(output, [example, fake]);
 
-  tag = 'Fake';
+  tag = tagFake;
   query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${tag}') ORDER BY title ASC LIMIT 100`;
   output = await s.getQuery(query);
   t.deepEqual(output, [fake, empty]);
@@ -201,7 +211,7 @@ test('getQuery(query): returns the requested number of the most recently updated
 test('getQuery(query): returns the requested number of the related documents', async (t) => {
   const s = new StorageProvider(config);
   await s.add(fake);
-  const tagged = { ...empty, tags: ['Example Tag'] };
+  const tagged = { ...empty, tags: [tagExample] };
   await s.add(tagged);
 
   const query = `SELECT * FROM documents WHERE 'tags' INCLUDES ('${example.tags.join(',')}') AND slug != ${example.slug} ORDER BY title DESC LIMIT 2`;
@@ -266,51 +276,52 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   await fs.remove('test/site');
 
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file');
+  t.is(all[0].title, secondFileV1);
   history = await s.getHistory(document.slug);
   t.is(history.length, 1);
 
-  document.title = 'second file-v2';
-  document.content = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  document.content = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file-v2');
+  t.is(all[0].title, secondFileV2);
   await s.refresh();
   history = await s.getHistory(document.slug);
   // TODO Sometimes returns 1, not 2.
   t.is(history.length, 2);
 
-  document.title = 'second file-v3';
-  document.content = 'second file-v3';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV3;
+  document.content = secondFileV3;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file-v3');
+  t.is(all[0].title, secondFileV3);
   await s.refresh();
   history = await s.getHistory(document.slug);
   // TODO Sometimes returns 2, not 3.
   t.is(history.length, 3);
 
-  document.slug = 'second-file-new-directory';
-  document.title = 'second file-v4';
-  document.content = 'second file-v4';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.slug = secondFileNewDirectory;
+  document.title = secondFileV4;
+  document.content = secondFileV4;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file-v4');
+  t.is(all[0].title, secondFileV4);
   history = await s.getHistory(document.slug);
   t.is(history.length, 4);
 });
@@ -339,51 +350,52 @@ test('getRevision({ slug, revision }): returns a specific revision of an article
   await fs.remove('test/site');
 
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file');
+  t.is(all[0].title, secondFileV1);
   history = await s.getHistory(document.slug);
   t.is(history.length, 1);
 
-  document.title = 'second file-v2';
-  document.content = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  document.content = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file-v2');
+  t.is(all[0].title, secondFileV2);
   await s.refresh();
   history = await s.getHistory(document.slug);
   // TODO: Occasionally this returns 1, not 2.
   t.is(history.length, 2);
 
-  document.title = 'second file-v3';
-  document.content = 'second file-v3';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV3;
+  document.content = secondFileV3;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file-v3');
+  t.is(all[0].title, secondFileV3);
   await s.refresh();
   history = await s.getHistory(document.slug);
   // TODO: Occasionlly returns 2, not 3.
   t.is(history.length, 3);
 
-  document.slug = 'second-file-new-directory';
-  document.title = 'second file-v4';
-  document.content = 'second file-v4';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.slug = secondFileNewDirectory;
+  document.title = secondFileV4;
+  document.content = secondFileV4;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
-  t.is(all[0].title, 'second file-v4');
+  t.is(all[0].title, secondFileV4);
   history = await s.getHistory(document.slug);
   t.is(history.length, 4);
 
@@ -392,13 +404,13 @@ test('getRevision({ slug, revision }): returns a specific revision of an article
 
   let revision;
   revision = await s.getRevision({ slug: document.slug, revision: history[0] });
-  t.is(revision.title, 'second file');
+  t.is(revision.title, secondFileV1);
   revision = await s.getRevision({ slug: document.slug, revision: history[1] });
-  t.is(revision.title, 'second file-v2');
+  t.is(revision.title, secondFileV2);
   revision = await s.getRevision({ slug: document.slug, revision: history[2] });
-  t.is(revision.title, 'second file-v3');
+  t.is(revision.title, secondFileV3);
   revision = await s.getRevision({ slug: document.slug, revision: history[3] });
-  t.is(revision.title, 'second file-v4');
+  t.is(revision.title, secondFileV4);
 });
 
 test('add(document): cannot add without a document or a slug', async (t) => {
@@ -414,15 +426,16 @@ test('add(document): cannot add without a document or a slug', async (t) => {
 
 test('add(document): creates a new document', async (t) => {
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = [];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: {},
+    html: '',
+    slug: secondFile,
+    tags: [],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   const all = await s.all();
   t.deepEqual(all[0], example);
@@ -431,15 +444,16 @@ test('add(document): creates a new document', async (t) => {
 
 test('add(document): creates a new document without saving a history', async (t) => {
   const s = new StorageProvider({ ...config, use_history: false });
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = [];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: {},
+    html: '',
+    slug: secondFile,
+    tags: [],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   const all = await s.all();
   t.deepEqual(all[0], example);
@@ -448,13 +462,14 @@ test('add(document): creates a new document without saving a history', async (t)
 
 test('add(document): creates a new document with missing fields', async (t) => {
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.html = '';
-  document.slug = 'second-file';
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    html: '',
+    slug: secondFile,
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   const all = await s.all();
   t.deepEqual(all[0], example);
@@ -464,15 +479,16 @@ test('add(document): creates a new document with missing fields', async (t) => {
 test('add(document): does not create a document with the same slug', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = [];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: {},
+    html: '',
+    slug: secondFile,
+    tags: [],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.deepEqual(all[0], example);
@@ -486,12 +502,12 @@ test('add(document): does not create a document with the same slug', async (t) =
 test('update({ document, originalSlug }): does not update without a document or slug', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  await s.update({ document: undefined, originalSlug: 'second-file' });
+  await s.update({ document: undefined, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, example.title);
 
-  await s.update({ document: { title: 'New' }, originalSlug: 'second-file' });
+  await s.update({ document: { title: 'New' }, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 1);
   t.is(all[0].title, example.title);
@@ -500,46 +516,48 @@ test('update({ document, originalSlug }): does not update without a document or 
 test('update({ document, originalSlug }): updates the file on disk', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
-  document.title = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
-  const output = await s.get('second-file');
+  const output = await s.get(secondFile);
   t.is(output.title, document.title);
 });
 
 test('update({ document, originalSlug }): updates the file on disk without an originalSlug', async (t) => {
   let all;
   const s = new StorageProvider({ ...config, use_history: false });
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
-  document.title = 'second file-v2';
+  document.title = secondFileV2;
   await s.update({ document, originalSlug: undefined });
   all = await s.all();
   t.is(all.length, 2);
-  const output = await s.get('second-file');
+  const output = await s.get(secondFile);
   t.is(output.title, document.title);
 });
 
@@ -547,25 +565,25 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   let all;
   let history;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
-
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
   history = await s.getHistory(document.slug);
   t.is(history.length, 1);
 
-  document.title = 'second file-v2';
-  document.content = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  document.content = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -575,9 +593,9 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   history = await s.getHistory(document.slug);
   t.is(history.length, 2);
 
-  document.title = 'second file-v3';
-  document.content = 'second file-v3';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV3;
+  document.content = secondFileV3;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -585,10 +603,10 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   history = await s.getHistory(document.slug);
   t.is(history.length, 3);
 
-  document.slug = 'second-file-new-directory';
-  document.title = 'second file-v4';
-  document.content = 'second file-v4';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.slug = secondFileNewDirectory;
+  document.title = secondFileV4;
+  document.content = secondFileV4;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -603,18 +621,19 @@ test('update({ document, originalSlug }): renames the history directory if it ex
 test('update({ document, originalSlug }): updates the file on disk with missing fields', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.html = '';
-  document.slug = 'second-file';
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    html: '',
+    slug: secondFile,
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
-  document.title = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
   t.is(all[1].title, document.title);
@@ -623,34 +642,36 @@ test('update({ document, originalSlug }): updates the file on disk with missing 
 test('update({ document, originalSlug }): does not update when file exists', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.html = '';
-  document.slug = 'second-file';
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    html: '',
+    slug: secondFile,
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
-  document.title = 'second file-v2';
-  await s.update({ document, originalSlug: 'example-title' });
+  document.title = secondFileV2;
+  await s.update({ document, originalSlug: exampleSlug });
   all = await s.all();
   t.is(all.length, 2);
-  t.is(all[1].title, 'second file');
+  t.is(all[1].title, secondFileV1);
 });
 
 test('update({ document, originalSlug }): adds a document if the one to update is no found', async (t) => {
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = 1;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'third-file';
-  document.tags = [];
-  document.title = 'third file';
-  document.updateDate = 1;
+  const document = {
+    content: '',
+    createDate: 1,
+    customData: {},
+    html: '',
+    slug: 'third-file',
+    tags: [],
+    title: 'third file',
+    updateDate: 1,
+  };
   await s.update({ document, originalSlug: '' });
   const all = await s.all();
   t.is(all.length, 2);
@@ -659,20 +680,21 @@ test('update({ document, originalSlug }): adds a document if the one to update i
 test('update({ document, originalSlug }): updates the file on disk without updating timestamps', async (t) => {
   let all;
   const s = new StorageProvider({ ...config, update_timestamps: false });
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
-  document.title = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
   t.deepEqual(all[1], document);
@@ -681,20 +703,21 @@ test('update({ document, originalSlug }): updates the file on disk without updat
 test('update({ document, originalSlug }): updates the file on disk without updating history', async (t) => {
   let all;
   const s = new StorageProvider({ ...config, update_timestamps: false, use_history: false });
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = { test: true };
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = ['test'];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: { test: true },
+    html: '',
+    slug: secondFile,
+    tags: ['test'],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
-  document.title = 'second file-v2';
-  await s.update({ document, originalSlug: 'second-file' });
+  document.title = secondFileV2;
+  await s.update({ document, originalSlug: secondFile });
   all = await s.all();
   t.is(all.length, 2);
   t.deepEqual(all[1], document);
@@ -703,15 +726,16 @@ test('update({ document, originalSlug }): updates the file on disk without updat
 test('delete(document): removes the file from disk', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = 1;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = [];
-  document.title = 'second file';
-  document.updateDate = 1;
+  const document = {
+    content: '',
+    createDate: 1,
+    customData: {},
+    html: '',
+    slug: secondFile,
+    tags: [],
+    title: secondFileV1,
+    updateDate: 1,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
@@ -723,15 +747,16 @@ test('delete(document): removes the file from disk', async (t) => {
 test('delete(document): removes the file from disk without history', async (t) => {
   let all;
   const s = new StorageProvider({ ...config, use_history: false });
-  const document = {};
-  document.content = '';
-  document.createDate = 1;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = [];
-  document.title = 'second file';
-  document.updateDate = 1;
+  const document = {
+    content: '',
+    createDate: 1,
+    customData: {},
+    html: '',
+    slug: secondFile,
+    tags: [],
+    title: secondFileV1,
+    updateDate: 1,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
@@ -743,15 +768,16 @@ test('delete(document): removes the file from disk without history', async (t) =
 test('delete(document): does nothing when no file is found', async (t) => {
   let all;
   const s = new StorageProvider(config);
-  const document = {};
-  document.content = '';
-  document.createDate = undefined;
-  document.customData = {};
-  document.html = '';
-  document.slug = 'second-file';
-  document.tags = [];
-  document.title = 'second file';
-  document.updateDate = undefined;
+  const document = {
+    content: '',
+    createDate: undefined,
+    customData: {},
+    html: '',
+    slug: secondFile,
+    tags: [],
+    title: secondFileV1,
+    updateDate: undefined,
+  };
   await s.add(document);
   all = await s.all();
   t.is(all.length, 2);
@@ -765,7 +791,7 @@ test('getQuery(query): returns all matching documents with an array of slugs', a
   await s.add(fake);
   await s.add(empty);
 
-  const search_results = [{ slug: 'example-title' }, { slug: 'fake' }];
+  const search_results = [{ slug: exampleSlug }, { slug: 'fake' }];
   const includes = search_results.map((result) => `'${result.slug}'`).join(',');
   const query = `SELECT * FROM documents WHERE slug INCLUDES (${includes}) ORDER BY title ASC LIMIT 100`;
   const output = await s.getQuery(query);

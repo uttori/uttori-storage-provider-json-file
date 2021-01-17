@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-fn-reference-in-iterator, unicorn/prefer-ternary */
+/* eslint-disable unicorn/no-array-callback-reference, unicorn/no-fn-reference-in-iterator, unicorn/prefer-ternary */
 let debug = () => {}; try { debug = require('debug')('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
 const R = require('ramda');
 const { parseQueryToRamda, validateQuery, fyShuffle } = require('uttori-utilities');
@@ -23,6 +23,11 @@ const processQuery = (query, objects) => {
   debug('Found limit:', limit);
   const whereFunctions = parseQueryToRamda(where);
   const filtered = R.filter(whereFunctions)(objects);
+
+  // Short circuit when we only want the counts.
+  if (fields.includes('COUNT(*)')) {
+    return filtered.length;
+  }
 
   // Sort / Order
   let output;

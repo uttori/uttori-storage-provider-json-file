@@ -7,6 +7,7 @@
     "plugin:optimize-regex/all",
     "plugin:ramda/recommended",
     "plugin:security/recommended",
+    "plugin:sonarjs/recommended",
     "plugin:unicorn/recommended"
   ],
   "plugins": [
@@ -17,21 +18,17 @@
     "optimize-regex",
     "ramda",
     "security",
+    "sonarjs",
     "unicorn",
     "xss"
   ],
   "env": {
-    "es6": true,
     "browser": true,
     "mocha": true
   },
-  "globals": {
-    "sinon": false,
-    "mocha": true,
-    "expect": true
-  },
+  "globals": {},
   "parserOptions": {
-    "ecmaVersion": 2020
+    "ecmaVersion": 2021
   },
   "rules": {
     "ava/no-only-test": 0,

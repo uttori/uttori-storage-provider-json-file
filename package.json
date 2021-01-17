@@ -22,7 +22,7 @@
     "node": ">= 12"
   },
   "dependencies": {
-    "@uttori/event-dispatcher": "^1.0.3",
+    "@uttori/event-dispatcher": "^1.0.4",
     "fs-extra": "^9.0.1",
     "ramda": "^0.27.1",
     "sanitize-filename": "^1.6.3",
@@ -32,38 +32,54 @@
     "debug": "^4.3.1"
   },
   "devDependencies": {
-    "ava": "^3.13.0",
+    "ava": "^3.15.0",
     "coveralls": "^3.1.0",
     "docsify-cli": "^4.4.2",
-    "eslint": "^7.14.0",
+    "eslint": "^7.18.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-ava": "^11.0.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^30.7.8",
+    "eslint-plugin-jsdoc": "^31.0.5",
     "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-no-inferred-method-name": "^2.0.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-optimize-regex": "^1.2.0",
     "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react": "^7.22.0",
     "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-security": "^1.4.0",
-    "eslint-plugin-unicorn": "^23.0.0",
+    "eslint-plugin-sonarjs": "^0.5.0",
+    "eslint-plugin-unicorn": "^26.0.1",
     "eslint-plugin-xss": "^0.1.10",
     "jsdoc": "^3.6.6",
     "jsdoc-to-markdown": "^6.0.1",
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
     "release-it": "^14.2.2",
-    "typescript": "^4.1.2"
+    "typescript": "^4.1.3"
   },
   "files": [
+    "esm/*",
     "src/*",
     "types/*"
   ],
   "main": "src/index.js",
+  "module": "esm/index.js",
   "types": "types/index.d.ts",
   "typings": "types/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "require": "./src/index.js",
+      "import": "./esm/index.js"
+    },
+    "./plugin": {
+      "require": "./src/plugin.js"
+    },
+    "./storage-provider": {
+      "require": "./src/storage-provider.js"
+    }
+  },
   "ava": {
     "files": [
       "test/**/*.test.js"
@@ -84,6 +100,11 @@
       "src/**/*.js"
     ],
     "exclude": []
+  },
+  "release-it": {
+    "github": {
+      "release": true
+    }
   },
   "scripts": {
     "docs": "jsdoc2md --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --private --example-lang js src/query-tools.js > docs/query-tools.md;",
