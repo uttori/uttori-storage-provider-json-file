@@ -19,6 +19,6 @@ test('Plugin: is properly exported', (t) => {
 test('StorageProvider: is properly exported', (t) => {
   t.notThrows(() => {
     const storage = new StorageProvider(config);
-    storage.refresh();
+    storage.all();
   });
 });

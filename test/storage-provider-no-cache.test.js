@@ -21,9 +21,8 @@ const config = {
   spaces_document: undefined,
   spaces_history: undefined,
   update_timestamps: true,
-  use_cache: true,
+  use_cache: false,
   use_history: true,
-
 };
 
 const example = {
@@ -284,6 +283,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   t.is(all.length, 1);
   t.is(all[0].title, secondFileV1);
 
+  // TODO Sometimes returns 0, not 1.
   history = await s.getHistory(secondFile);
   t.is(history.length, 1);
 
@@ -303,6 +303,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   t.is(all.length, 1);
   t.is(all[0].title, secondFileV2);
 
+  // TODO Sometimes returns 1, not 2.
   history = await s.getHistory(secondFile);
   t.is(history.length, 2);
 
@@ -322,6 +323,7 @@ test('getHistory(slug): returns an array of the history revisions', async (t) =>
   t.is(all.length, 1);
   t.is(all[0].title, secondFileV3);
 
+  // TODO Sometimes returns 2, not 3.
   history = await s.getHistory(secondFile);
   t.is(history.length, 3);
 
@@ -390,6 +392,7 @@ test('getRevision({ slug, revision }): returns a specific revision of an article
   t.is(all.length, 1);
   t.is(all[0].title, secondFileV2);
 
+  // TODO: Occasionally this returns 1, not 2.
   history = await s.getHistory(secondFile);
   t.is(history.length, 2);
 
@@ -404,6 +407,7 @@ test('getRevision({ slug, revision }): returns a specific revision of an article
   t.is(all.length, 1);
   t.is(all[0].title, secondFileV3);
 
+  // TODO: Occasionlly returns 2, not 3.
   history = await s.getHistory(secondFile);
   t.is(history.length, 3);
 
@@ -418,12 +422,15 @@ test('getRevision({ slug, revision }): returns a specific revision of an article
   t.is(all.length, 1);
   t.is(all[0].title, secondFileV4);
 
+  // TODO: Occasionlly returns 3, not 4.
   history = await s.getHistory(secondFileNewDirectory);
   t.is(history.length, 4);
 
   let revision;
+  // TODO: Occasionlly return secondFileV2, not secondFileV1.
   revision = await s.getRevision({ slug: secondFileNewDirectory, revision: history[0] });
   t.is(revision.title, secondFileV1);
+  // TODO: Occasionlly return secondFileV3, not secondFileV2.
   revision = await s.getRevision({ slug: secondFileNewDirectory, revision: history[1] });
   t.is(revision.title, secondFileV2);
   revision = await s.getRevision({ slug: secondFileNewDirectory, revision: history[2] });
@@ -652,6 +659,7 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   t.is(all.length, 2);
   t.is(all[1].title, secondFileV2);
 
+  // TODO Sometimes returns 1, not 2.
   history = await s.getHistory(secondFile);
   t.is(history.length, 2);
 
@@ -671,6 +679,7 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   t.is(all.length, 2);
   t.is(all[1].title, secondFileV3);
 
+  // TODO Sometimes returns 2, not 3.
   history = await s.getHistory(secondFile);
   t.is(history.length, 3);
 
@@ -690,6 +699,7 @@ test('update({ document, originalSlug }): renames the history directory if it ex
   t.is(all.length, 2);
   t.is(all[1].title, secondFileV4);
 
+  // TODO Sometimes returns 3, not 4.
   history = await s.getHistory(secondFileNewDirectory);
   t.is(history.length, 4);
 
@@ -788,12 +798,12 @@ test('update({ document, originalSlug }): updates the file on disk without updat
   await s.update({
     document: {
       content: '',
-      createDate: undefined,
+      createDate: 1459310452001,
       html: '',
       slug: secondFile,
       tags: ['test'],
       title: secondFileV2,
-      updateDate: undefined,
+      updateDate: 1459310452001,
     },
     originalSlug: secondFile,
   });
@@ -801,12 +811,12 @@ test('update({ document, originalSlug }): updates the file on disk without updat
   t.is(all.length, 2);
   t.deepEqual(all[1], {
     content: '',
-    createDate: undefined,
+    createDate: 1459310452001,
     html: '',
     slug: secondFile,
     tags: ['test'],
     title: secondFileV2,
-    updateDate: undefined,
+    updateDate: 1459310452001,
   });
 });
 
@@ -816,23 +826,23 @@ test('update({ document, originalSlug }): updates the file on disk without updat
 
   await s.add({
     content: '',
-    createDate: undefined,
+    createDate: 1459310452001,
     html: '',
     slug: secondFile,
     tags: ['test'],
     title: secondFileV1,
-    updateDate: undefined,
+    updateDate: 1459310452001,
   });
   all = Object.values(s.all());
   t.is(all.length, 2);
   await s.update({
     document: {
       content: '',
-      createDate: undefined,
+      createDate: 1459310452001,
       html: '',
       slug: secondFile,
       tags: ['test'],
-      updateDate: undefined,
+      updateDate: 1459310452001,
       title: secondFileV2,
     },
     originalSlug: secondFile,
@@ -841,11 +851,11 @@ test('update({ document, originalSlug }): updates the file on disk without updat
   t.is(all.length, 2);
   t.deepEqual(all[1], {
     content: '',
-    createDate: undefined,
+    createDate: 1459310452001,
     html: '',
     slug: secondFile,
     tags: ['test'],
-    updateDate: undefined,
+    updateDate: 1459310452001,
     title: secondFileV2,
   });
 });

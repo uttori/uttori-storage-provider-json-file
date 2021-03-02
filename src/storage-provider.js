@@ -1,19 +1,15 @@
-/* eslint-disable unicorn/no-fn-reference-in-iterator */
+/** @type {Function} */
 let debug = () => {}; try { debug = require('debug')('Uttori.StorageProvider.JSON'); } catch {}
 const fs = require('fs-extra');
 const sanitize = require('sanitize-filename');
-const R = require('ramda');
 const path = require('path');
-const { FileUtility } = require('uttori-utilities');
 const { processQuery } = require('./query-tools');
 
 /**
  * @typedef UttoriDocument The document object we store, with only the minimum methods we access listed.
  * @property {string} slug The unique identifier for the document.
- * @property {string} [title=''] The unique identifier for the document.
  * @property {number|Date} [createDate] The creation date of the document.
  * @property {number|Date} [updateDate] The last date the document was updated.
- * @property {string[]} [tags=[]] The unique identifier for the document.
  */
 
 /**
@@ -25,7 +21,7 @@ const { processQuery } = require('./query-tools');
  * @property {string} [config.extension='json'] - The file extension to use for file, name of the employee.
  * @property {number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
  * @property {number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
- * @property {UttoriDocument[]} documents - The collection of documents.
+ * @property {object} documents - The collection of documents where the slug is the key and the value is the document.
  * @example <caption>Init StorageProvider</caption>
  * const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });
  * @class
@@ -40,6 +36,7 @@ class StorageProvider {
  * @param {string} [config.extension=json] - The file extension to use for file, name of the employee.
  * @param {boolean} [config.update_timestamps=true] - Should update times be marked at the time of edit.
  * @param {boolean} [config.use_history=true] - Should history entries be created.
+ * @param {boolean} [config.use_cache=true] - Should we cache files in memory?
  * @param {number} [config.spaces_document=undefined] - The spaces parameter for JSON stringifying documents.
  * @param {number} [config.spaces_history=undefined] - The spaces parameter for JSON stringifying history.
  * @class
@@ -61,16 +58,18 @@ class StorageProvider {
 
     this.config = {
       extension: 'json',
-      spaces_document: undefined,
-      spaces_history: undefined,
       update_timestamps: true,
       use_history: true,
+      use_cache: true,
+      spaces_document: undefined,
+      spaces_history: undefined,
       ...config,
     };
 
-    this.documents = [];
-    FileUtility.ensureDirectorySync(this.config.content_directory);
-    FileUtility.ensureDirectorySync(this.config.history_directory);
+    this.refresh = true;
+    this.documents = {};
+    fs.ensureDirSync(this.config.content_directory);
+    fs.ensureDirSync(this.config.history_directory);
 
     this.all = this.all.bind(this);
     this.getQuery = this.getQuery.bind(this);
@@ -82,22 +81,43 @@ class StorageProvider {
     this.update = this.update.bind(this);
     this.delete = this.delete.bind(this);
     this.updateHistory = this.updateHistory.bind(this);
-
-    this.refresh();
   }
 
   /**
    * Returns all documents.
    *
-   * @async
-   * @returns {Promise} Promise object represents all documents.
+   * @returns {object} All documents.
    * @example
    * storageProvider.all();
-   * ➜ [{ slug: 'first-document', ... }, ...]
+   * ➜ { first-document: { slug: 'first-document', ... }, ...}
    */
-  async all() {
+  all() {
     debug('all');
-    return Promise.all(this.documents);
+    if (this.config.use_cache && this.refresh === false) {
+      return this.documents;
+    }
+
+    const documents = {};
+    try {
+      const fileNames = fs.readdirSync(this.config.content_directory);
+      const validFiles = fileNames.filter((name) => (name.length >= 6) && name.endsWith(this.config.extension));
+      for (const name of validFiles) {
+        const file = path.join(this.config.content_directory, `${path.parse(name).name}.${this.config.extension}`);
+        debug('all: Reading', file);
+        const content = fs.readFileSync(file, 'utf8');
+        const data = JSON.parse(content);
+        documents[data.slug] = data;
+      }
+      debug('all: found', Object.values(documents).length);
+      if (this.config.use_cache) {
+        this.documents = documents;
+        this.refresh = false;
+      }
+    } catch (error) {
+      /* istanbul ignore next */
+      debug('all: Error:', error);
+    }
+    return documents;
   }
 
   /**
@@ -105,12 +125,11 @@ class StorageProvider {
    *
    * @async
    * @param {string} query - The conditions on which documents should be returned.
-   * @returns {Promise} Promise object represents all matching documents.
+   * @returns {Promise<UttoriDocument[]|number>} Promise object represents all matching documents.
    */
   async getQuery(query) {
     debug('getQuery:', query);
-    const all = await this.all();
-    return processQuery(query, all);
+    return processQuery(query, Object.values(this.all()));
   }
 
   /**
@@ -118,70 +137,31 @@ class StorageProvider {
    *
    * @async
    * @param {string} slug - The slug of the document to be returned.
-   * @returns {Promise} Promise object represents the returned UttoriDocument.
+   * @returns {Promise<UttoriDocument|undefined>} Promise object represents the returned UttoriDocument.
    */
   async get(slug) {
-    debug('get', slug);
+    debug('get:', slug);
     if (!slug) {
-      debug('Cannot get document without slug.', slug);
+      debug('get: Cannot get document without slug.');
       return undefined;
     }
-    const all = await this.all();
-    const document = R.clone(
-      R.find(
-        R.propEq('slug', slug),
-      )(all),
-    );
-    if (!document) {
-      debug('No document found!');
-      return undefined;
-    }
-    return document;
-  }
+    slug = sanitize(`${slug}`);
 
-  /**
-   * Returns the history of edits for a given slug.
-   *
-   * @async
-   * @param {string} slug - The slug of the document to get history for.
-   * @returns {Promise} Promise object represents the returned history.
-   */
-  async getHistory(slug) {
-    debug('getHistory', slug);
-    if (!slug) {
-      debug('Cannot get document history without slug.', slug);
-      return undefined;
+    // Check the cache, fall back to reading the file.
+    if (this.config.use_cache && this.documents[slug]) {
+      return { ...this.documents[slug] };
     }
-    const folder = path.join(this.config.history_directory, sanitize(`${slug}`));
-    return FileUtility.readFolder(folder);
-  }
 
-  /**
-   * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
-   *
-   * @async
-   * @param {object} params - The params object.
-   * @param {string} params.slug - The slug of the document to be returned.
-   * @param {number} params.revision - The unix timestamp of the history to be returned.
-   * @returns {Promise} Promise object represents the returned revision of the document.
-   */
-  async getRevision({ slug, revision }) {
-    debug('getRevision', slug, revision);
-    if (!slug) {
-      debug('Cannot get document history without slug.', slug);
+    // Either not in cache or not using cache, read a document from a file.
+    try {
+      const file = path.join(this.config.content_directory, `${slug}.${this.config.extension}`);
+      debug('get:', file);
+      const content = await fs.readFile(file, 'utf8');
+      return JSON.parse(content);
+    } catch (error) {
+      debug(`get: Error reading "${slug}":`, error);
       return undefined;
     }
-    if (!revision) {
-      debug('Cannot get document history without revision.', revision);
-      return undefined;
-    }
-    const folder = path.join(this.config.history_directory, sanitize(`${slug}`));
-    const document = await FileUtility.readJSON(folder, `${revision}`, this.config.extension);
-    if (!document) {
-      debug(`Document history not found for "${slug}", with revision "${revision}"`);
-      return undefined;
-    }
-    return document;
   }
 
   /**
@@ -199,18 +179,26 @@ class StorageProvider {
     debug('add:', document.slug);
     const existing = await this.get(document.slug);
     if (!existing) {
-      debug('Adding document.', document);
+      debug('add: new document', document);
       document.createDate = Date.now();
       document.updateDate = document.createDate;
-      document.tags = R.isEmpty(document.tags) ? [] : document.tags;
-      document.customData = R.isEmpty(document.customData) ? {} : document.customData;
       if (this.config.use_history) {
         await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history));
       }
-      await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, undefined, this.config.spaces_document));
-      await this.refresh();
+      if (this.config.use_cache) {
+        this.documents[document.slug] = document;
+      }
+
+      try {
+        const file = path.join(this.config.content_directory, `${document.slug}.${this.config.extension}`);
+        debug('add: Creating content file:', file);
+        await fs.writeFile(file, JSON.stringify(document, undefined, this.config.spaces_document), 'utf8');
+      } catch (error) {
+        /* istanbul ignore next */
+        debug('add: Error creating content file:', error);
+      }
     } else {
-      debug('Cannot add, existing document!');
+      debug('add: Cannot add, existing document!');
     }
   }
 
@@ -227,16 +215,21 @@ class StorageProvider {
     if (this.config.update_timestamps) {
       document.updateDate = Date.now();
     }
-    /* istanbul ignore next */
-    document.tags = R.isEmpty(document.tags) ? [] : document.tags;
-    /* istanbul ignore next */
-    document.customData = R.isEmpty(document.customData) ? {} : document.customData;
     if (this.config.use_history) {
       await this.updateHistory(document.slug, JSON.stringify(document, undefined, this.config.spaces_history), originalSlug);
     }
-    await FileUtility.writeFile(this.config.content_directory, document.slug, this.config.extension, JSON.stringify(document, undefined, this.config.spaces_document));
-    await this.refresh();
-    debug('updateValid complete');
+    if (this.config.use_cache) {
+      this.documents[document.slug] = document;
+    }
+
+    try {
+      const file = path.join(this.config.content_directory, `${document.slug}.${this.config.extension}`);
+      debug('updateValid: Updating content file:', file);
+      await fs.writeFile(file, JSON.stringify(document, undefined, this.config.spaces_document), 'utf8');
+    } catch (error) {
+      /* istanbul ignore next */
+      debug('updateValid: Error updating content file:', error);
+    }
   }
 
   /**
@@ -253,23 +246,36 @@ class StorageProvider {
       debug('Cannot update, missing slug.');
       return;
     }
-    debug('update:', document.slug, originalSlug);
+    debug('update:', document.slug, 'originalSlug:', originalSlug);
     const existing = await this.get(document.slug);
-    const original = originalSlug ? await this.get(originalSlug) : undefined;
+    let original;
+    if (originalSlug) {
+      original = await this.get(originalSlug);
+    }
     if (existing && original && original.slug !== existing.slug) {
-      debug(`Cannot update, existing document with slug "${originalSlug}"!`);
+      debug(`update: Cannot update, existing document with new slug "${originalSlug}"!`);
     } else if (existing && original && original.slug === existing.slug) {
-      debug(`Updating document with slug "${document.slug}"`);
+      debug(`update: Updating document with slug "${document.slug}"`);
       await this.updateValid(document, originalSlug);
     } else if (existing && !original) {
-      debug(`Updating document with slug "${document.slug}" but no originalSlug`);
+      debug(`update: Updating document with slug "${document.slug}" but no originalSlug`);
       await this.updateValid(document, document.slug);
     } else if (!existing && original) {
-      debug(`Updating document with slug from "${originalSlug}" to "${document.slug}"`);
-      await FileUtility.deleteFile(this.config.content_directory, originalSlug, this.config.extension);
+      debug(`update: Updating document and changing slug from "${originalSlug}" to "${document.slug}"`);
+      if (this.config.use_cache) {
+        delete this.documents[originalSlug];
+      }
+      /* istanbul ignore next */
+      try {
+        const file = path.join(this.config.content_directory, `${originalSlug}.${this.config.extension}`);
+        debug('update: Deleting old file:', file);
+        fs.unlink(file);
+      } catch (error) {
+        debug('update: Error deleteing old file:', error);
+      }
       await this.updateValid(document, originalSlug);
     } else {
-      debug(`No document found to update with slug "${originalSlug}", adding document with slug "${document.slug}"`);
+      debug(`update: No document found to update with slug "${originalSlug}", adding document with slug "${document.slug}"`);
       await this.add(document);
     }
   }
@@ -286,42 +292,81 @@ class StorageProvider {
     if (existing) {
       debug('Document found, deleting document:', slug);
       if (this.config.use_history) {
-        await this.updateHistory(existing.slug, JSON.stringify(existing, undefined, this.config.spaces_history));
+        await this.updateHistory(slug, JSON.stringify(existing, undefined, this.config.spaces_history));
       }
-      await FileUtility.deleteFile(this.config.content_directory, slug, this.config.extension);
-      await this.refresh();
+      if (this.config.use_cache) {
+        delete this.documents[slug];
+      }
+      /* istanbul ignore next */
+      try {
+        const file = path.join(this.config.content_directory, `${slug}.${this.config.extension}`);
+        debug('delete: Deleting content file:', file);
+        fs.unlink(file);
+      } catch (error) {
+        debug('delete: Error deleteing content file:', error);
+      }
     } else {
       debug('Document not found:', slug);
     }
   }
 
-  // Format Specific Methods
-
   /**
-   * Reloads all documents from the file system into the cache.
+   * Returns the history of edits for a given slug.
    *
    * @async
+   * @param {string} slug - The slug of the document to get history for.
+   * @returns {Promise<string[]>} Promise object represents the returned history.
    */
-  async refresh() {
-    debug('refresh');
-    let documents = [];
-    try {
-      const fileNames = fs.readdirSync(this.config.content_directory);
-      const validFiles = R.filter(
-        (name) => (name.length >= 6) && name.endsWith(this.config.extension),
-        fileNames,
-      );
-      documents = R.map(
-        (name) => FileUtility.readJSON(this.config.content_directory, path.parse(name).name, this.config.extension),
-        validFiles,
-      );
-    } catch (error) {
-      /* istanbul ignore next */
-      debug('Error refreshing documents:', error);
+  async getHistory(slug) {
+    debug('getHistory', slug);
+    if (!slug) {
+      debug('Cannot get document history without slug.', slug);
+      return [];
     }
 
-    this.documents = R.reject(R.isNil, documents);
+    let history = [];
+    const folder = path.join(this.config.history_directory, sanitize(`${slug}`));
+    debug('getHistory: folder', folder);
+    // eslint-disable-next-line no-bitwise
+    const access = await new Promise((resolve) => fs.access(folder, fs.constants.R_OK | fs.constants.W_OK, (err) => (!err ? resolve(true) : resolve(false))));
+    if (access) {
+      history = await fs.readdir(folder);
+    }
+    debug('getHistory: history', history);
+    return history;
   }
+
+  /**
+   * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
+   *
+   * @async
+   * @param {object} params - The params object.
+   * @param {string} params.slug - The slug of the document to be returned.
+   * @param {string|number} params.revision - The unix timestamp of the history to be returned.
+   * @returns {Promise<UttoriDocument|undefined>} Promise object represents the returned revision of the document.
+   */
+  async getRevision({ slug, revision }) {
+    debug('getRevision', slug, revision);
+    if (!slug) {
+      debug('getRevision: Cannot get document history without slug.', slug);
+      return undefined;
+    }
+    if (!revision) {
+      debug('getRevision: Cannot get document history without revision.', revision);
+      return undefined;
+    }
+    try {
+      const file = path.join(this.config.history_directory, sanitize(`${slug}`), sanitize(`${revision}`));
+      debug('getRevision: Reading history file:', file);
+      const content = await fs.readFile(file, 'utf8');
+      return JSON.parse(content);
+    } catch (error) {
+      debug('getRevision: Error reading history file:', error);
+      return undefined;
+    }
+  }
+
+  // Format Specific Methods
 
   /**
    * Updates History for a given slug, renaming the store file and history folder as needed.
@@ -332,19 +377,19 @@ class StorageProvider {
    * @param {string} [originalSlug] - The original slug identifying the document, or the slug if it has not changed.
    */
   async updateHistory(slug, content, originalSlug) {
-    debug('updateHistory', slug, content, originalSlug);
+    debug('updateHistory:', slug, content, originalSlug);
     const original_folder = path.join(this.config.history_directory, sanitize(`${originalSlug}`));
     const new_folder = path.join(this.config.history_directory, sanitize(`${slug}`));
 
     // Rename old history folder if one existed
     if (slug && originalSlug && originalSlug !== slug) {
-      debug(`Updating history from "${originalSlug}" to "${slug}"`);
+      debug(`updateHistory: Updating history from "${originalSlug}" to "${slug}"`);
       /* istanbul ignore else */
       if (await fs.pathExists(original_folder)) {
-        debug(`Renaming history folder from "${original_folder}" to "${new_folder}"`);
+        debug(`updateHistory: Renaming history folder from "${original_folder}" to "${new_folder}"`);
         try { await fs.move(original_folder, new_folder); } catch (error) {
           /* istanbul ignore next */
-          debug(`Error renaming history folder from "${original_folder}" to "${new_folder}"`, error);
+          debug(`updateHistory: Error renaming history folder from "${original_folder}" to "${new_folder}"`, error);
         }
       }
     }
@@ -352,15 +397,29 @@ class StorageProvider {
     /* istanbul ignore else */
     const pathExists = await fs.pathExists(new_folder);
     if (!pathExists) {
-      debug('Creating document history folder:', new_folder);
+      debug('updateHistory: Creating document history folder:', new_folder);
       /* istanbul ignore next */
-      try { await FileUtility.ensureDirectory(new_folder); } catch (error) {
+      try {
+        await fs.mkdir(new_folder);
+      } catch (error) {
         /* istanbul ignore next */
-        debug('Error creating document history folder:', new_folder, error);
+        debug('updateHistory: Error creating document history folder:', new_folder, error);
       }
     }
-
-    await FileUtility.writeFile(new_folder, `${Date.now()}`, this.config.extension, content);
+    /* istanbul ignore next */
+    try {
+      let file = path.join(new_folder, `${Date.now()}.${this.config.extension}`);
+      let fileExists = await fs.pathExists(file);
+      while (fileExists) {
+        file = path.join(new_folder, `${Date.now()}.${this.config.extension}`);
+        // eslint-disable-next-line no-await-in-loop
+        fileExists = await fs.pathExists(file);
+      }
+      debug('updateHistory: Creating history file:', file);
+      await fs.writeFile(file, content, 'utf8');
+    } catch (error) {
+      debug('updateHistory: Error creating history file:', error);
+    }
   }
 }
 

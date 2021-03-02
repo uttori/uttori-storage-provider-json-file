@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/no-fn-reference-in-iterator */
+/** @type {Function} */
 let debug = () => {}; try { debug = require('debug')('Uttori.Plugin.StorageProvider.JSON'); } catch {}
 const StorageProvider = require('./storage-provider');
 
@@ -36,6 +36,9 @@ class Plugin {
       content_directory: '',
       history_directory: '',
       extension: 'json',
+      update_timestamps: true,
+      use_history: true,
+      use_cache: true,
       spaces_document: undefined,
       spaces_history: undefined,
       events: {
@@ -94,15 +97,16 @@ class Plugin {
     }
 
     const storage = new StorageProvider(config);
-    Object.keys(config.events).forEach((method) => {
-      config.events[method].forEach((event) => {
+    const methods = Object.keys(config.events);
+    for (const method of methods) {
+      for (const event of config.events[method]) {
         if (typeof storage[method] !== 'function') {
           debug(`Missing function "${method}" for key "${event}"`);
           return;
         }
         context.hooks.on(event, storage[method]);
-      });
-    });
+      }
+    }
   }
 }
 

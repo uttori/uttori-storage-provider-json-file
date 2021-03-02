@@ -8,6 +8,9 @@ const config = {
   content_directory: 'test/site/content',
   history_directory: 'test/site/content/history',
   extension: 'json',
+  update_timestamps: true,
+  use_history: true,
+  use_cache: true,
   spaces_document: undefined,
   spaces_history: undefined,
 };
@@ -19,6 +22,10 @@ test.beforeEach(async () => {
 
 test.afterEach.always(async () => {
   await fs.remove('test/site');
+});
+
+test('Plugin.configKey: returns a stable string', (t) => {
+  t.is(Plugin.configKey, 'uttori-plugin-storage-provider-json-file');
 });
 
 test('Plugin.register(context): can register', (t) => {

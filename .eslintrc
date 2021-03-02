@@ -61,6 +61,7 @@
     "no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
     "consistent-return": ["warn", { "treatUndefinedAsUnspecified": false }],
     "object-curly-newline": 0,
-    "unicorn/no-useless-undefined": 0
+    "unicorn/no-useless-undefined": 0,
+    "sonarjs/cognitive-complexity": 0
   }
 }
