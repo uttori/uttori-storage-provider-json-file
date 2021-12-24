@@ -207,11 +207,9 @@ Updates History for a given slug, renaming the store file and history folder as 
 **Kind**: global typedef  
 **Properties**
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| slug | <code>string</code> |  | The unique identifier for the document. |
-| [title] | <code>string</code> | <code>&quot;&#x27;&#x27;&quot;</code> | The unique identifier for the document. |
-| [createDate] | <code>number</code> \| <code>Date</code> |  | The creation date of the document. |
-| [updateDate] | <code>number</code> \| <code>Date</code> |  | The last date the document was updated. |
-| [tags] | <code>Array.&lt;string&gt;</code> | <code>[]</code> | The unique identifier for the document. |
+| Name | Type | Description |
+| --- | --- | --- |
+| slug | <code>string</code> | The unique identifier for the document. |
+| [createDate] | <code>number</code> \| <code>Date</code> | The creation date of the document. |
+| [updateDate] | <code>number</code> \| <code>Date</code> | The last date the document was updated. |
 

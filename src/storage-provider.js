@@ -327,7 +327,7 @@ class StorageProvider {
     let history = [];
     const folder = path.join(this.config.history_directory, sanitize(`${slug}`));
     debug('getHistory: folder', folder);
-    // eslint-disable-next-line no-bitwise
+    // eslint-disable-next-line no-bitwise, no-promise-executor-return
     const access = await new Promise((resolve) => fs.access(folder, fs.constants.R_OK | fs.constants.W_OK, (err) => (!err ? resolve(true) : resolve(false))));
     if (access) {
       history = await fs.readdir(folder);

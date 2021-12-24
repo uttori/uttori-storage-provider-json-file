@@ -1,3 +1,5 @@
+declare module "@uttori/storage-provider-json-file";
+
 declare module "query-tools" {
     export function processQuery(query: string, objects: object[]): object[] | number;
 }
@@ -48,10 +50,8 @@ declare module "storage-provider" {
     }
     type UttoriDocument = {
         slug: string;
-        title?: string;
         createDate?: number | Date;
         updateDate?: number | Date;
-        tags?: string[];
     };
 }
 declare module "plugin" {

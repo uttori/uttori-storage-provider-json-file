@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-array-callback-reference, unicorn/no-fn-reference-in-iterator, unicorn/prefer-ternary */
 /** @type {Function} */
 let debug = () => {}; try { debug = require('debug')('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
 const R = require('ramda');

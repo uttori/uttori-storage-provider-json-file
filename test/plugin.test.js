@@ -2,7 +2,7 @@
 const fs = require('fs-extra');
 const test = require('ava');
 const { EventDispatcher } = require('@uttori/event-dispatcher');
-const Plugin = require('../src/plugin.js');
+const Plugin = require('../src/plugin');
 
 const config = {
   content_directory: 'test/site/content',
