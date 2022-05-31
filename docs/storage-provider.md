@@ -187,7 +187,7 @@ Returns a specifc revision from the history of edits for a given slug and revisi
 <a name="StorageProvider+updateHistory"></a>
 
 ### storageProvider.updateHistory(slug, content, [originalSlug])
-Updates History for a given slug, renaming the store file and history folder as needed.
+Updates History for a given slug, renaming the store file and history directory as needed.
 
 **Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
 

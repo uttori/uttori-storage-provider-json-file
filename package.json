@@ -19,41 +19,42 @@
     "json"
   ],
   "engines": {
-    "node": ">= 12"
+    "node": ">= 16"
   },
   "dependencies": {
     "@uttori/event-dispatcher": "^2.0.1",
-    "fs-extra": "^10.0.0",
-    "ramda": "^0.27.1",
+    "fs-extra": "^10.1.0",
+    "ramda": "^0.28.0",
     "sanitize-filename": "^1.6.3",
     "uttori-utilities": "^3.0.0"
   },
   "optionalDependencies": {
-    "debug": "^4.3.3"
+    "debug": "^4.3.4"
   },
   "devDependencies": {
-    "ava": "^3.15.0",
-    "eslint": "^8.5.0",
-    "eslint-config-airbnb": "^19.0.2",
-    "eslint-plugin-anti-trojan-source": "^1.0.6",
-    "eslint-plugin-ava": "^13.1.0",
-    "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-jsdoc": "^37.4.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "ava": "^4.2.0",
+    "eslint": "^8.16.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-anti-trojan-source": "^1.1.0",
+    "eslint-plugin-ava": "^13.2.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsdoc": "^39.3.2",
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-no-inferred-method-name": "^2.0.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
     "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.28.0",
-    "eslint-plugin-react-hooks": "^4.3.0",
-    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-react": "^7.30.0",
+    "eslint-plugin-react-hooks": "^4.5.0",
+    "eslint-plugin-security": "^1.5.0",
     "eslint-plugin-xss": "^0.1.11",
-    "jsdoc": "^3.6.7",
-    "jsdoc-to-markdown": "^7.1.0",
+    "jsdoc": "^3.6.10",
+    "jsdoc-to-markdown": "^7.1.1",
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
-    "release-it": "^14.11.8",
-    "typescript": "^4.5.4"
+    "release-it": "^15.0.0",
+    "typescript": "^4.7.2"
   },
   "files": [
     "esm/*",

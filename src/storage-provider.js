@@ -171,12 +171,10 @@ class StorageProvider {
    * @param {UttoriDocument} document - The document to be added to the collection.
    */
   async add(document) {
-    debug('add');
     if (!document || !document.slug) {
-      debug('Cannot add, missing slug.');
+      debug('add: Cannot add, missing slug.');
       return;
     }
-    debug('add:', document.slug);
     const existing = await this.get(document.slug);
     if (!existing) {
       debug('add: new document', document);
@@ -325,12 +323,14 @@ class StorageProvider {
     }
 
     let history = [];
-    const folder = path.join(this.config.history_directory, sanitize(`${slug}`));
-    debug('getHistory: folder', folder);
+    const directory = path.join(this.config.history_directory, sanitize(`${slug}`));
+    debug('getHistory: directory', directory);
     // eslint-disable-next-line no-bitwise, no-promise-executor-return
-    const access = await new Promise((resolve) => fs.access(folder, fs.constants.R_OK | fs.constants.W_OK, (err) => (!err ? resolve(true) : resolve(false))));
+    const access = await new Promise((resolve) => fs.access(directory, fs.constants.R_OK | fs.constants.W_OK, (err) => (!err ? resolve(true) : resolve(false))));
     if (access) {
-      history = await fs.readdir(folder);
+      history = await fs.readdir(directory);
+      // Return the filename without extension, just the timestamp.
+      history = history.map((file) => path.basename(file, `.${this.config.extension}`));
     }
     debug('getHistory: history', history);
     return history;
@@ -356,7 +356,7 @@ class StorageProvider {
       return undefined;
     }
     try {
-      const file = path.join(this.config.history_directory, sanitize(`${slug}`), sanitize(`${revision}`));
+      const file = path.join(this.config.history_directory, sanitize(`${slug}`), sanitize(`${revision}.${this.config.extension}`));
       debug('getRevision: Reading history file:', file);
       const content = await fs.readFile(file, 'utf8');
       return JSON.parse(content);
@@ -369,7 +369,7 @@ class StorageProvider {
   // Format Specific Methods
 
   /**
-   * Updates History for a given slug, renaming the store file and history folder as needed.
+   * Updates History for a given slug, renaming the store file and history directory as needed.
    *
    * @async
    * @param {string} slug - The slug of the document to update history for.
@@ -378,40 +378,40 @@ class StorageProvider {
    */
   async updateHistory(slug, content, originalSlug) {
     debug('updateHistory:', slug, content, originalSlug);
-    const original_folder = path.join(this.config.history_directory, sanitize(`${originalSlug}`));
-    const new_folder = path.join(this.config.history_directory, sanitize(`${slug}`));
+    const original_directory = path.join(this.config.history_directory, sanitize(`${originalSlug}`));
+    const new_directory = path.join(this.config.history_directory, sanitize(`${slug}`));
 
-    // Rename old history folder if one existed
+    // Rename old history directory if one existed
     if (slug && originalSlug && originalSlug !== slug) {
-      debug(`updateHistory: Updating history from "${originalSlug}" to "${slug}"`);
+      debug(`updateHistory: Updating history directory from "${originalSlug}" to "${slug}"`);
       /* istanbul ignore else */
-      if (await fs.pathExists(original_folder)) {
-        debug(`updateHistory: Renaming history folder from "${original_folder}" to "${new_folder}"`);
-        try { await fs.move(original_folder, new_folder); } catch (error) {
+      if (await fs.pathExists(original_directory)) {
+        debug(`updateHistory: Renaming history directory from "${original_directory}" to "${new_directory}"`);
+        try { await fs.move(original_directory, new_directory); } catch (error) {
           /* istanbul ignore next */
-          debug(`updateHistory: Error renaming history folder from "${original_folder}" to "${new_folder}"`, error);
+          debug(`updateHistory: Error renaming history directory from "${original_directory}" to "${new_directory}"`, error);
         }
       }
     }
 
     /* istanbul ignore else */
-    const pathExists = await fs.pathExists(new_folder);
+    const pathExists = await fs.pathExists(new_directory);
     if (!pathExists) {
-      debug('updateHistory: Creating document history folder:', new_folder);
+      debug('updateHistory: Creating document history directory:', new_directory);
       /* istanbul ignore next */
       try {
-        await fs.mkdir(new_folder);
+        await fs.mkdir(new_directory);
       } catch (error) {
         /* istanbul ignore next */
-        debug('updateHistory: Error creating document history folder:', new_folder, error);
+        debug('updateHistory: Error creating document history directory:', new_directory, error);
       }
     }
     /* istanbul ignore next */
     try {
-      let file = path.join(new_folder, `${Date.now()}.${this.config.extension}`);
+      let file = path.join(new_directory, `${Date.now()}.${this.config.extension}`);
       let fileExists = await fs.pathExists(file);
       while (fileExists) {
-        file = path.join(new_folder, `${Date.now()}.${this.config.extension}`);
+        file = path.join(new_directory, `${Date.now()}.${this.config.extension}`);
         // eslint-disable-next-line no-await-in-loop
         fileExists = await fs.pathExists(file);
       }

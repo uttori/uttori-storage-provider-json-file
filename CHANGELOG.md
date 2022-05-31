@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [4.2.0](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.1.1...v4.2.0) - 2022-05-30
+
+- 🛠 Fix how `getHistory` & `getRevision` handle the configured file extension. `getHistory` now returns only the revisions without the file extensions suitible for use in URLs or other similar usecases. `getRevision` now knows to append the file exntension.
+- 🛠 Renamed `folder` to `directory` in debug logs.
+- 🎁 Update dev dependencies
+
 ## [4.1.1](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.1.0...v4.1.1) - 2021-12-22
 
 - 🎁 Update dev dependencies
