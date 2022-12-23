@@ -1,12 +1,7 @@
 [![view on npm](https://img.shields.io/npm/v/@uttori/storage-provider-json-file.svg)](https://www.npmjs.org/package/@uttori/storage-provider-json-file)
 [![npm module downloads](https://img.shields.io/npm/dt/@uttori/storage-provider-json-file.svg)](https://www.npmjs.org/package/@uttori/storage-provider-json-file)
 [![Build Status](https://travis-ci.com/uttori/uttori-storage-provider-json-file.svg?branch=master)](https://travis-ci.com/uttori/uttori-storage-provider-json-file)
-[![Dependency Status](https://david-dm.org/uttori/uttori-storage-provider-json-file.svg)](https://david-dm.org/uttori/uttori-storage-provider-json-file)
 [![Coverage Status](https://coveralls.io/repos/uttori/uttori-storage-provider-json-file/badge.svg?branch=master)](https://coveralls.io/r/uttori/uttori-storage-provider-json-file?branch=master)
-[![Tree-Shaking Support](https://badgen.net/bundlephobia/tree-shaking/@uttori/storage-provider-json-file)](https://bundlephobia.com/result?p=@uttori/storage-provider-json-file)
-[![Dependency Count](https://badgen.net/bundlephobia/dependency-count/@uttori/storage-provider-json-file)](https://bundlephobia.com/result?p=@uttori/storage-provider-json-file)
-[![Minified + GZip](https://badgen.net/bundlephobia/minzip/@uttori/storage-provider-json-file)](https://bundlephobia.com/result?p=@uttori/storage-provider-json-file)
-[![Minified](https://badgen.net/bundlephobia/min/@uttori/storage-provider-json-file)](https://bundlephobia.com/result?p=@uttori/storage-provider-json-file)
 
 # Uttori Storage Provider - JSON File
 
