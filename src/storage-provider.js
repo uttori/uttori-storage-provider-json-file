@@ -1,6 +1,6 @@
-import { promises as fs } from 'fs';
+import { promises as fs } from 'node:fs';
 import sanitize from 'sanitize-filename';
-import path from 'path';
+import path from 'node:path';
 import processQuery from './query-tools.js';
 
 let debug = (..._) => {};
@@ -15,11 +15,23 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.StoragePro
  */
 
 /**
+ * @typedef StorageProviderConfig The configuration object for the StorageProvider.
+ * @property {string} contentDirectory The directory to store documents.
+ * @property {string} historyDirectory The directory to store document histories.
+ * @property {string} [extension] The file extension to use for file.
+ * @property {boolean} [updateTimestamps] Should update times be marked at the time of edit.
+ * @property {boolean} [useHistory] Should history entries be created.
+ * @property {boolean} [useCache] Should we cache files in memory?
+ * @property {number} [spacesDocument] The spaces parameter for JSON stringifying documents.
+ * @property {number} [spacesHistory] The spaces parameter for JSON stringifying history.
+ */
+
+/**
  * Storage for Uttori documents using JSON files stored on the local file system.
  * @property {object} config - The configuration object.
  * @property {string} config.contentDirectory - The directory to store documents.
  * @property {string} config.historyDirectory - The directory to store document histories.
- * @property {string} [config.extension='json'] - The file extension to use for file, name of the employee.
+ * @property {string} [config.extension='json'] - The file extension to use for file.
  * @property {number} [config.spacesDocument=undefined] - The spaces parameter for JSON stringifying documents.
  * @property {number} [config.spacesHistory=undefined] - The spaces parameter for JSON stringifying history.
  * @property {object} documents - The collection of documents where the slug is the key and the value is the document.
@@ -30,15 +42,7 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.StoragePro
 class StorageProvider {
 /**
  * Creates an instance of StorageProvider.
- * @param {object} config - A configuration object.
- * @param {string} config.contentDirectory - The directory to store documents.
- * @param {string} config.historyDirectory - The directory to store document histories.
- * @param {string} [config.extension] - The file extension to use for file, name of the employee.
- * @param {boolean} [config.updateTimestamps] - Should update times be marked at the time of edit.
- * @param {boolean} [config.useHistory] - Should history entries be created.
- * @param {boolean} [config.useCache] - Should we cache files in memory?
- * @param {number} [config.spacesDocument] - The spaces parameter for JSON stringifying documents.
- * @param {number} [config.spacesHistory] - The spaces parameter for JSON stringifying history.
+ * @param {StorageProviderConfig} config - A configuration object.
  * @class
  */
   constructor(config) {

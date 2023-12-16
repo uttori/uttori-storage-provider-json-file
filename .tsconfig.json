@@ -1,6 +1,5 @@
 {
   "include": [
-    "node_modules/@uttori/**/src/*",
     "src/**/*"
   ],
   "exclude": [
@@ -9,18 +8,24 @@
   ],
   "compilerOptions": {
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "checkJs": true,
     "declaration": true,
     "downlevelIteration": true,
     "emitDeclarationOnly": true,
     "extendedDiagnostics": true,
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
+    "outDir": "dist",
     "noEmit": false,
-    "outFile": "types/index.d.ts",
-    "removeComments": true,
     "sourceMap": true,
     "strict": false,
     "target": "esnext",
-    "skipLibCheck": true
+    "removeComments": false,
+    "skipLibCheck": true,
+    "declarationMap": true,
+    "types": ["node"],
+    "typeRoots": [
+      "node_modules/@types"
+    ]
   }
 }

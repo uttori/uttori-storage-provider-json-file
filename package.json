@@ -30,6 +30,7 @@
     "debug": "^4.3.4"
   },
   "devDependencies": {
+    "@types/node": "^20.10.4",
     "@typescript-eslint/parser": "^6.14.0",
     "ava": "^6.0.1",
     "c8": "^8.0.1",
@@ -56,13 +57,12 @@
     "typescript": "^5.3.3"
   },
   "files": [
-    "src/*",
-    "types/*"
+    "dist/*",
+    "src/*"
   ],
   "module": "src/index.js",
   "type": "module",
-  "types": "types/index.d.ts",
-  "typings": "types/index.d.ts",
+  "types": "dist/index.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -107,7 +107,7 @@
     "docs": "jsdoc2md --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --private --example-lang js src/query-tools.js > docs/query-tools.md;",
     "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
-    "make-types": "rm -fr types/ && mkdir types && tsc --project .tsconfig.json",
+    "make-types": "rm -fr types/ && mkdir types && tsc --module nodenext --project ./.tsconfig.json",
     "release": "release-it",
     "test": "NODE_ENV=test c8 ava --serial --concurrency=1",
     "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",

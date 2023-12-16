@@ -11,6 +11,8 @@
 <dl>
 <dt><a href="#UttoriDocument">UttoriDocument</a></dt>
 <dd></dd>
+<dt><a href="#StorageProviderConfig">StorageProviderConfig</a></dt>
+<dd></dd>
 </dl>
 
 <a name="StorageProvider"></a>
@@ -26,7 +28,7 @@ Storage for Uttori documents using JSON files stored on the local file system.
 | config | <code>object</code> |  | The configuration object. |
 | config.contentDirectory | <code>string</code> |  | The directory to store documents. |
 | config.historyDirectory | <code>string</code> |  | The directory to store document histories. |
-| [config.extension] | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file, name of the employee. |
+| [config.extension] | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file. |
 | [config.spacesDocument] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
 | [config.spacesHistory] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
 | documents | <code>object</code> |  | The collection of documents where the slug is the key and the value is the document. |
@@ -56,15 +58,7 @@ Creates an instance of StorageProvider.
 
 | Param | Type | Description |
 | --- | --- | --- |
-| config | <code>object</code> | A configuration object. |
-| config.contentDirectory | <code>string</code> | The directory to store documents. |
-| config.historyDirectory | <code>string</code> | The directory to store document histories. |
-| [config.extension] | <code>string</code> | The file extension to use for file, name of the employee. |
-| [config.updateTimestamps] | <code>boolean</code> | Should update times be marked at the time of edit. |
-| [config.useHistory] | <code>boolean</code> | Should history entries be created. |
-| [config.useCache] | <code>boolean</code> | Should we cache files in memory? |
-| [config.spacesDocument] | <code>number</code> | The spaces parameter for JSON stringifying documents. |
-| [config.spacesHistory] | <code>number</code> | The spaces parameter for JSON stringifying history. |
+| config | [<code>StorageProviderConfig</code>](#StorageProviderConfig) | A configuration object. |
 
 **Example** *(Init StorageProvider)*  
 ```js
@@ -215,4 +209,21 @@ Ensure a directory exists, and if not create it.
 | slug | <code>string</code> | The unique identifier for the document. |
 | [createDate] | <code>number</code> \| <code>Date</code> | The creation date of the document. |
 | [updateDate] | <code>number</code> \| <code>Date</code> | The last date the document was updated. |
+
+<a name="StorageProviderConfig"></a>
+
+## StorageProviderConfig
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| contentDirectory | <code>string</code> | The directory to store documents. |
+| historyDirectory | <code>string</code> | The directory to store document histories. |
+| [extension] | <code>string</code> | The file extension to use for file. |
+| [updateTimestamps] | <code>boolean</code> | Should update times be marked at the time of edit. |
+| [useHistory] | <code>boolean</code> | Should history entries be created. |
+| [useCache] | <code>boolean</code> | Should we cache files in memory? |
+| [spacesDocument] | <code>number</code> | The spaces parameter for JSON stringifying documents. |
+| [spacesHistory] | <code>number</code> | The spaces parameter for JSON stringifying history. |
 
