@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [5.0.0](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.2.1...v5.0.0) - 2023-12-14
+## [5.0.0](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.2.1...v5.0.0) - 2023-12-16
 
 - 💥 BREAKING CHANGES!
 - 💥 Rename config key: `content_directory` to `contentDirectory`

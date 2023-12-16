@@ -79,7 +79,7 @@ const results = await s.getQuery('SELECT tags FROM documents WHERE slug IS_NOT_N
 ➜  results === [
       { tags: ['Example Tag'] },
     ]
-const results = s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
+const results = await s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
 ➜  results === 1
 ```
 
