@@ -1,13 +1,12 @@
-// @ts-nocheck
-const test = require('ava');
-const { Plugin, StorageProvider } = require('../src');
+import test from 'ava';
+import { Plugin, StorageProvider } from '../src/index.js';
 
 const config = {
-  content_directory: 'test/site/content',
-  history_directory: 'test/site/content/history',
+  contentDirectory: 'test/site/content',
+  historyDirectory: 'test/site/content/history',
   extension: 'json',
-  spaces_document: undefined,
-  spaces_history: undefined,
+  spacesDocument: undefined,
+  spacesHistory: undefined,
 };
 
 test('Plugin: is properly exported', (t) => {

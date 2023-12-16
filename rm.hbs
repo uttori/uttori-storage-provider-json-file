@@ -19,13 +19,13 @@ npm install --save @uttori/storage-provider-json-file
 
 ```js
 {
-  content_directory: '',
-  history_directory: '',
+  contentDirectory: '',
+  historyDirectory: '',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
-  update_timestamps: true,
-  use_history: true,
+  spacesDocument: null,
+  spacesHistory: null,
+  updateTimestamps: true,
+  useHistory: true,
   // Registration Events
   events: {
     add: ['storage-add'],
@@ -55,11 +55,11 @@ import StorageProvider from '@uttori/storage-provider-json-file';
 // or
 const { StorageProvider } = require('@uttori/storage-provider-json-file');
 const s = new StorageProvider({
-  content_directory: 'example/content',
-  history_directory: 'example/history',
+  contentDirectory: 'example/content',
+  historyDirectory: 'example/history',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
+  spacesDocument: null,
+  spacesHistory: null,
 });
 await s.add({
   title: 'Example Title',

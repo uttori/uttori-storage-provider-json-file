@@ -19,80 +19,79 @@
     "json"
   ],
   "engines": {
-    "node": ">= 16"
+    "node": ">= 20"
   },
   "dependencies": {
     "@uttori/event-dispatcher": "^2.0.2",
-    "fs-extra": "^11.1.0",
-    "ramda": "^0.28.0",
-    "sanitize-filename": "^1.6.3",
-    "uttori-utilities": "^3.0.0"
+    "ramda": "^0.29.1",
+    "sanitize-filename": "^1.6.3"
   },
   "optionalDependencies": {
     "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^5.47.0",
-    "ava": "^5.1.0",
-    "eslint": "^8.30.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "ava": "^6.0.1",
+    "c8": "^8.0.1",
+    "eslint": "^8.56.0",
     "eslint-config-airbnb": "^19.0.4",
-    "eslint-plugin-anti-trojan-source": "^1.1.0",
-    "eslint-plugin-ava": "^13.2.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-jsdoc": "^39.6.4",
-    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-anti-trojan-source": "^1.1.1",
+    "eslint-plugin-ava": "^14.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^46.9.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-n": "^16.4.0",
     "eslint-plugin-no-inferred-method-name": "^2.0.0",
-    "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
     "eslint-plugin-ramda": "^2.5.1",
-    "eslint-plugin-react": "^7.31.11",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-security": "^1.5.0",
+    "eslint-plugin-security": "^1",
+    "eslint-plugin-sonarjs": "^0.23.0",
     "eslint-plugin-xss": "^0.1.12",
-    "jsdoc": "^4.0.0",
+    "jsdoc": "^4.0.2",
     "jsdoc-to-markdown": "^8.0.0",
-    "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
-    "release-it": "^15.5.1",
-    "typescript": "^4.9.4"
+    "release-it": "^17.0.1",
+    "typescript": "^5.3.3"
   },
   "files": [
-    "esm/*",
     "src/*",
     "types/*"
   ],
-  "main": "src/index.js",
-  "module": "esm/index.js",
+  "module": "src/index.js",
+  "type": "module",
   "types": "types/index.d.ts",
   "typings": "types/index.d.ts",
   "sideEffects": false,
   "exports": {
     ".": {
-      "require": "./src/index.js",
-      "import": "./esm/index.js"
+      "import": "./src/index.js"
     },
     "./plugin": {
-      "require": "./src/plugin.js"
+      "import": "./src/plugin.js"
     },
     "./storage-provider": {
-      "require": "./src/storage-provider.js"
+      "import": "./src/storage-provider.js"
     }
   },
   "ava": {
     "files": [
       "test/**/*.test.js"
     ],
-    "ignoredByWatcher": [
-      "!src/**/*.js"
-    ],
     "concurrency": 1,
     "failFast": false,
     "tap": false,
-    "verbose": true
+    "verbose": true,
+    "watchMode": {
+      "ignoreChanges": [
+        "!src/**/*.js"
+      ]
+    }
   },
-  "nyc": {
-    "cache": true,
-    "all": true,
+  "c8": {
+    "clean": true,
+    "per-file": true,
     "check-coverage": false,
     "include": [
       "src/**/*.js"
@@ -110,8 +109,7 @@
     "lint": "eslint .",
     "make-types": "rm -fr types/ && mkdir types && tsc --project .tsconfig.json",
     "release": "release-it",
-    "report": "nyc report --reporter=html",
-    "test": "NODE_ENV=test nyc ava --serial --concurrency=1",
+    "test": "NODE_ENV=test c8 ava --serial --concurrency=1",
     "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",
     "validate": "npm ls"
   },

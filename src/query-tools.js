@@ -1,11 +1,14 @@
-/** @type {Function} */
-let debug = () => {}; try { debug = require('debug')('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
-const R = require('ramda');
-const { parseQueryToRamda, validateQuery, fyShuffle } = require('uttori-utilities');
+import * as R from 'ramda';
+import parseQueryToRamda from './parse-query-to-ramda.js';
+import validateQuery from './validate-query.js';
+import fyShuffle from './fisher-yates-shuffle.js';
+
+let debug = (..._) => {};
+/* c8 ignore next */
+try { const { default: d } = await import('debug'); debug = d('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
 
 /**
  * Processes a query string.
- *
  * @param {string} query - The SQL-like query to parse.
  * @param {object[]} objects - An array of object to search within.
  * @returns {object[]|number} Returns an array of all matched documents, or a count.
@@ -57,6 +60,4 @@ const processQuery = (query, objects) => {
   return output;
 };
 
-module.exports = {
-  processQuery,
-};
+export default processQuery;

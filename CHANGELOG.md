@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](http://semver.org/).
 
+## [5.0.0](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.2.1...v5.0.0) - 2023-12-14
+
+- 💥 BREAKING CHANGES!
+- 💥 Rename config key: `content_directory` to `contentDirectory`
+- 💥 Rename config key: `historyDirectory` to `historyDirectory`
+- 💥 Rename config key: `updateTimestamps` to `updateTimestamps`
+- 💥 Rename config key: `useHistory` to `useHistory`
+- 💥 Rename config key: `use_cache` to `useCache`
+- 💥 Rename config key: `spaces_document` to `spacesDocument`
+- 💥 Rename config key: `spaces_history` to `spacesHistory`
+- 🎁 Convert to be a module, and require Node v20
+- 🎁 Remove dependency on `uttori-utilities`
+- 🎁 Remove dependency on `fs-extra`
+- 🎁 Update dependencies
+- 🎁 Update dev dependencies
+- 🛠 Update ESLint configuration
+- 🛠 Update NVM to v20.10.0
+- 🛠 Update old tooling confugration files
+- 🛠 Remove CJS support, restucture to export ESM only
+- 🛠 Make `.all()` an `async` function
+- 🛠 Refactor `fs` method use to be `async`` and more efficient
+- 🧰 Add `StorageProvider.ensureDirectory` static method to ensure directories are created before writing files
+- 🧰 Add support for `EXCLUDES` as the opposite of `INCLUDES` for `SELECT` queries
+
 ## [4.2.1](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.2.0...v4.2.1) - 2022-12-22
 
 - 🎁 Update dependencies
