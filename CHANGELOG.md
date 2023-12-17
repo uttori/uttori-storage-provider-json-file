@@ -6,9 +6,9 @@ All notable changes to this project will be documented in this file. This projec
 
 - 💥 BREAKING CHANGES!
 - 💥 Rename config key: `content_directory` to `contentDirectory`
-- 💥 Rename config key: `historyDirectory` to `historyDirectory`
-- 💥 Rename config key: `updateTimestamps` to `updateTimestamps`
-- 💥 Rename config key: `useHistory` to `useHistory`
+- 💥 Rename config key: `history_directory` to `historyDirectory`
+- 💥 Rename config key: `update_timestamps` to `updateTimestamps`
+- 💥 Rename config key: `use_history` to `useHistory`
 - 💥 Rename config key: `use_cache` to `useCache`
 - 💥 Rename config key: `spaces_document` to `spacesDocument`
 - 💥 Rename config key: `spaces_history` to `spacesHistory`

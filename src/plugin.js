@@ -13,6 +13,7 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.Plugin.Sto
 class Plugin {
   /**
    * The configuration key for plugin to look for in the provided configuration.
+   * In this case the key is `uttori-plugin-storage-provider-json-file`.
    * @type {string}
    * @returns {string} The configuration key.
    * @example <caption>Plugin.configKey</caption>

@@ -8,6 +8,7 @@ export default Plugin;
 declare class Plugin {
     /**
      * The configuration key for plugin to look for in the provided configuration.
+     * In this case the key is `uttori-plugin-storage-provider-json-file`.
      * @type {string}
      * @returns {string} The configuration key.
      * @example <caption>Plugin.configKey</caption>

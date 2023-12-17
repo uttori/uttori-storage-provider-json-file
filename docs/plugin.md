@@ -14,6 +14,7 @@ Uttori Storage Provider - JSON File
 
 ### Plugin.configKey ⇒ <code>string</code>
 The configuration key for plugin to look for in the provided configuration.
+In this case the key is `uttori-plugin-storage-provider-json-file`.
 
 **Kind**: static property of [<code>Plugin</code>](#Plugin)  
 **Returns**: <code>string</code> - The configuration key.  

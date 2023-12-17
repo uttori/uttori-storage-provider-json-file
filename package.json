@@ -82,12 +82,7 @@
     "concurrency": 1,
     "failFast": false,
     "tap": false,
-    "verbose": true,
-    "watchMode": {
-      "ignoreChanges": [
-        "!src/**/*.js"
-      ]
-    }
+    "verbose": true
   },
   "c8": {
     "clean": true,
@@ -105,9 +100,8 @@
   },
   "scripts": {
     "docs": "jsdoc2md --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --private --example-lang js src/query-tools.js > docs/query-tools.md;",
-    "docs-serve": "docsify init ./docs && docsify serve ./docs",
     "lint": "eslint .",
-    "make-types": "rm -fr types/ && mkdir types && tsc --module nodenext --project ./.tsconfig.json",
+    "make-types": "tsc --module nodenext --project ./.tsconfig.json",
     "release": "release-it",
     "test": "NODE_ENV=test c8 ava --serial --concurrency=1",
     "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",
