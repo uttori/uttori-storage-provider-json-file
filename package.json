@@ -30,7 +30,8 @@
     "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@types/node": "^20.10.4",
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
     "ava": "^6.0.1",
     "c8": "^8.0.1",
@@ -47,11 +48,12 @@
     "eslint-plugin-ramda": "^2.5.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-security": "^1",
+    "eslint-plugin-security": "^2",
     "eslint-plugin-sonarjs": "^0.23.0",
     "eslint-plugin-xss": "^0.1.12",
     "jsdoc": "^4.0.2",
     "jsdoc-to-markdown": "^8.0.0",
+    "jsdoc-tsimport-plugin": "^1.0.5",
     "pre-commit": "^1.2.2",
     "release-it": "^17.0.1",
     "typescript": "^5.3.3"
@@ -99,9 +101,9 @@
     }
   },
   "scripts": {
-    "docs": "jsdoc2md --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --private --example-lang js src/query-tools.js > docs/query-tools.md;",
+    "docs": " jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/query-tools.js > docs/query-tools.md;",
     "lint": "eslint .",
-    "make-types": "tsc --module nodenext --project ./.tsconfig.json",
+    "make-types": "tsc --checkJs false --module nodenext --project ./.tsconfig.json",
     "release": "release-it",
     "test": "NODE_ENV=test c8 ava --serial --concurrency=1",
     "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",

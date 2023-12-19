@@ -52,7 +52,7 @@ class Tokenizer {
 
   /**
    * Ends the current mode and removes it from the stack.
-   * @returns {string} The last mode of the stack.
+   * @returns {string | undefined} The last mode of the stack.
    */
   completeCurrentMode() {
     const currentMode = this.getCurrentMode();
@@ -72,12 +72,12 @@ class Tokenizer {
 
   /**
    * Parse the provided token.
-   * @param {*} token The token to parse.
+   * @param {string | boolean | number | null} token The token to parse.
    */
   push(token) {
     let surroundedBy = '';
 
-    if (this.factory.convertLiterals && this.getCurrentMode() !== MODE_MATCH) {
+    if (typeof token === 'string' && this.factory.convertLiterals && this.getCurrentMode() !== MODE_MATCH) {
       // Convert the string version of literals into their literal types.
       switch (token.toLowerCase()) {
         case 'null':
@@ -127,6 +127,7 @@ class Tokenizer {
    * @param {string} character - The character to process.
    */
   consume(character) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this[this.getCurrentMode()](character);
     this.previousCharacter = character;
   }
@@ -149,7 +150,7 @@ class Tokenizer {
   /**
    * Checks the token for delimiter or quotes, else continue building token.
    * @param {string} character - The character to consider.
-   * @returns {string} The current token.
+   * @returns {string | undefined} The current token.
    */
   [MODE_DEFAULT](character) {
     // If we encounter a delimiter, its time to push out the current token.
@@ -220,7 +221,7 @@ class Tokenizer {
   /**
    * Checks for a completed match between characters.
    * @param {string} character - The character to match.
-   * @returns {string} - The current token.
+   * @returns {string | undefined} - The current token.
    */
   [MODE_MATCH](character) {
     if (character === this.toMatch) {
@@ -253,35 +254,48 @@ const sortTokenizableSubstrings = (a, b) => {
 };
 
 /**
+ * @typedef {object} TokenizeThisConfig
+ * @property {string[]} [shouldTokenize] The list of tokenizable substrings.
+ * @property {string[]} [shouldMatch] The list of quotes to match explicit strings with.
+ * @property {string[]} [shouldDelimitBy] The list of delimiters.
+ * @property {boolean} [convertLiterals] If literals should be converted or not, ie 'true' -> true.
+ * @property {string} [escapeCharacter] Character to use as an escape in strings.
+ */
+
+/**
  * Takes in the config, processes it, and creates tokenizer instances based on that config.
- * @property {object} config - The configuration object.
- * @property {boolean} convertLiterals - If literals should be converted or not, ie 'true' -> true.
- * @property {string} escapeCharacter - Character to use as an escape in strings.
- * @property {object} tokenizeList - Holds the list of tokenizable substrings.
- * @property {object} tokenizeMap - Holds an easy lookup map of tokenizable substrings.
- * @property {object} matchList - Holds the list of quotes to match explicit strings with.
- * @property {object} matchMap - Holds an easy lookup map of quotes to match explicit strings with.
- * @property {object} delimiterList - Holds the list of delimiters.
- * @property {object} delimiterMap - Holds an easy lookup map of delimiters.
+ * @property {TokenizeThisConfig} config The configuration object.
+ * @property {boolean} convertLiterals If literals should be converted or not, ie 'true' -> true.
+ * @property {string} escapeCharacter Character to use as an escape in strings.
+ * @property {string[]} tokenizeList Holds the list of tokenizable substrings.
+ * @property {object} tokenizeMap Holds an easy lookup map of tokenizable substrings.
+ * @property {object} matchList Holds the list of quotes to match explicit strings with.
+ * @property {object} matchMap Holds an easy lookup map of quotes to match explicit strings with.
+ * @property {object} delimiterList Holds the list of delimiters.
+ * @property {object} delimiterMap Holds an easy lookup map of delimiters.
  * @example <caption>Init TokenizeThis</caption>
  * const tokenizer = new TokenizeThis(config.tokenizer);
  * this.tokenizer.tokenize('(sql)', (token, surroundedBy) => { ... });
  * @class
  */
 class TokenizeThis {
-  constructor(config = {}) {
+  /**
+   * @param {TokenizeThisConfig} config The configuration object.
+   */
+  constructor(config) {
     config = {
       shouldTokenize: ['(', ')', ',', '*', '/', '%', '+', '-', '=', '!=', '!', '<', '>', '<=', '>=', '^'],
       shouldMatch: ['"', "'", '`'],
       shouldDelimitBy: [' ', '\n', '\r', '\t'],
       convertLiterals: true,
       escapeCharacter: '\\',
-      ...config,
+      ...(config || {}),
     };
 
     this.convertLiterals = config.convertLiterals;
     this.escapeCharacter = config.escapeCharacter;
 
+    /** @type {string[]} Holds the list of tokenizable substrings. */
     this.tokenizeList = [];
     this.tokenizeMap = {};
     this.matchList = [];
@@ -290,24 +304,21 @@ class TokenizeThis {
     this.delimiterMap = {};
 
     // Sorts the tokenizable substrings based on their length, such that "<=" will get matched before "<" does.
-    config.shouldTokenize.sort(sortTokenizableSubstrings).forEach((token) => {
-      /* c8 ignore else */
+    config.shouldTokenize?.sort(sortTokenizableSubstrings).forEach((token) => {
       if (!this.tokenizeMap[token]) {
         this.tokenizeList.push(token);
         this.tokenizeMap[token] = token;
       }
     });
 
-    config.shouldMatch.forEach((match) => {
-      /* c8 ignore else */
+    config.shouldMatch?.forEach((match) => {
       if (!this.matchMap[match]) {
         this.matchList.push(match);
         this.matchMap[match] = match;
       }
     });
 
-    config.shouldDelimitBy.forEach((delimiter) => {
-      /* c8 ignore else */
+    config.shouldDelimitBy?.forEach((delimiter) => {
       if (!this.delimiterMap[delimiter]) {
         this.delimiterList.push(delimiter);
         this.delimiterMap[delimiter] = delimiter;
@@ -320,7 +331,7 @@ class TokenizeThis {
   /**
    * Creates a Tokenizer, then immediately calls "tokenize".
    * @param {string} input - The string to scan for tokens.
-   * @param {Function} forEachToken - Function to run over each token.
+   * @param {(token:string, surroundedBy:boolean) => void} forEachToken - Function to run over each token.
    * @returns {*} The new Tokenizer instance after being tokenized.
    */
   tokenize(input, forEachToken) {

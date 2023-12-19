@@ -4,7 +4,8 @@ import validateQuery from './validate-query.js';
 import fyShuffle from './fisher-yates-shuffle.js';
 
 let debug = (..._) => {};
-/* c8 ignore next */
+/* c8 ignore next 2 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 try { const { default: d } = await import('debug'); debug = d('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
 
 /**

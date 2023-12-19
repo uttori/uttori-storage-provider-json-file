@@ -1,4 +1,3 @@
-// @ts-nocheck
 import fs from 'fs/promises';
 import test from 'ava';
 import { EventDispatcher } from '@uttori/event-dispatcher';

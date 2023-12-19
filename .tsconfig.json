@@ -1,10 +1,11 @@
 {
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "test/**/*"
   ],
   "exclude": [
     "node_modules",
-    "test"
+    "test/**/*.test.js"
   ],
   "compilerOptions": {
     "allowJs": true,

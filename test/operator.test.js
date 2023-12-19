@@ -22,7 +22,7 @@ test('Operator.type: returns the numeric value for a type', (t) => {
   t.is(Operator.type('ternary'), 3);
 });
 
-test('Operator.type: throws an error when a type isnot found', (t) => {
+test('Operator.type: throws an error when a type is not found', (t) => {
   const error = t.throws(() => {
     Operator.type('quad');
   });

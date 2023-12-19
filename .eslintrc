@@ -8,10 +8,12 @@
     "plugin:n/recommended",
     "plugin:optimize-regex/all",
     "plugin:ramda/recommended",
-    "plugin:security/recommended",
-    "plugin:sonarjs/recommended"
+    "plugin:security/recommended-legacy",
+    "plugin:sonarjs/recommended",
+    "plugin:@typescript-eslint/recommended-type-checked"
   ],
   "plugins": [
+    "@typescript-eslint",
     "anti-trojan-source",
     "ava",
     "import",
@@ -37,9 +39,20 @@
   },
   "parserOptions": {
     "ecmaVersion": "latest",
-    "requireConfigFile": false
+    "requireConfigFile": false,
+    "project": ["./.tsconfig.json"]
   },
+  "ignorePatterns": [
+    "temp.js",
+    "dist/*.ts",
+    "test/*.js"
+  ],
   "rules": {
+    "@typescript-eslint/no-unsafe-argument": "warn",
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn",
     "anti-trojan-source/no-bidi": "error",
     "import/no-extraneous-dependencies": [
       "error", {
@@ -79,7 +92,8 @@
       }
     ],
     "no-underscore-dangle": 0,
-    "no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
+    "no-unused-vars": 0,
+    "@typescript-eslint/no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
     "object-curly-newline": 0,
     "optimize-regex/optimize-regex": "warn",
     "security/detect-non-literal-fs-filename": 0,

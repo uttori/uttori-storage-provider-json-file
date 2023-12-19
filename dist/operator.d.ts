@@ -1,9 +1,9 @@
 export default Operator;
 /**
  * A wrapper class around operators to distinguish them from regular tokens.
- * @property {*} value - The value.
- * @property {*} type - The type of operator.
- * @property {number} precedence - Priority to sort the operators with.
+ * @property {string | symbol} value The value.
+ * @property {number | symbol} type The type of operator.
+ * @property {number} precedence Priority to sort the operators with.
  * @example <caption>Init TokenizeThis</caption>
  * const op = new Operator(value, type, precedence);
  * @class
@@ -12,20 +12,23 @@ declare class Operator {
     /**
      * Returns a type for a given string.
      * @param {string} type - The type to lookup.
-     * @returns {*} Either number of parameters or Unary Minus Symbol.
+     * @returns {number | symbol} Either number of parameters or Unary Minus Symbol.
      * @static
      */
-    static type(type: string): any;
+    static type(type: string): number | symbol;
     /**
      * Creates an instance of Operator.
-     * @param {*} value - The value.
-     * @param {*} type - The type of operator.
-     * @param {number} precedence - Priority to sort the operators with.
+     * @param {string | symbol} value The value.
+     * @param {number | symbol} type The type of operator.
+     * @param {number} precedence Priority to sort the operators with.
      * @class
      */
-    constructor(value: any, type: any, precedence: number);
-    value: any;
-    type: any;
+    constructor(value: string | symbol, type: number | symbol, precedence: number);
+    /** @type {string | symbol} The value. */
+    value: string | symbol;
+    /** @type {number | symbol} The type of operator. */
+    type: number | symbol;
+    /** @type {number} Priority to sort the operators with. */
     precedence: number;
     /**
      * Returns the value as is for JSON.

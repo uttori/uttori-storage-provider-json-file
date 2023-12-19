@@ -1,16 +1,31 @@
-import * as R from 'ramda';
 import SqlWhereParser from './where-parser.js';
 
 let debug = (..._) => {};
-/* c8 ignore next */
+/* c8 ignore next 2 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 try { const { default: d } = await import('debug'); debug = d('Uttori.ValidateQuery'); } catch {}
+
+/**
+ * @typedef {object} ValidateQueryOrder
+ * @property {string} prop The property to sort by.
+ * @property {string | 'ASC' | 'DESC'} sort The direction to sort.
+ */
+
+/**
+ * @typedef {object} ValidateQueryFields
+ * @property {string[]} fields The fields to return.
+ * @property {string} table The table to query.
+ * @property {import('../dist/custom.js').SqlWhereParserAst} where The conditions on which a document should be returned.
+ * @property {ValidateQueryOrder[]} order The various orders to sort by.
+ * @property {number} limit The maximum number of results to return.
+ */
 
 /**
  * Validates and parses a SQL-like query structure.
  * Pass in: fields, table, conditions, order, limit as a query string:
  * `SELECT {fields} FROM {table} WHERE {conditions} ORDER BY {order} LIMIT {limit}`
  * @param {string} query - The conditions on which a document should be returned.
- * @returns {object} The extrated and validated fields, table, where, order and limit properties.
+ * @returns {ValidateQueryFields} The extrated and validated fields, table, where, order and limit properties.
  */
 const validateQuery = (query) => {
   debug('validateQuery:', query);
@@ -74,25 +89,28 @@ const validateQuery = (query) => {
     debug(error, pieces[6]);
     throw new Error(error);
   }
-  const order = R.compose(
-    R.map(R.fromPairs),
-    R.map(R.zip(['prop', 'sort'])),
-    R.map(R.split(' ')),
-    R.map(R.trim),
-    R.split(','),
-    R.trim,
-  )(pieces[7]);
+  if (pieces[7] === '') {
+    error = 'Invalid Query: Invalid ORDER BY, empty ORDER BY';
+    debug(error, pieces[7]);
+    throw new Error(error);
+  }
+  /** @type {ValidateQueryOrder[]} */
+  const order = pieces[7].trim() // Trim the string
+    .split(',') // Split by comma
+    .map((s) => s.trim()) // Trim each part
+    .map((s) => s.split(' ')) // Split each part by space
+    .map(([prop, sort]) => ({ prop, sort })); // Create an object from each pair
   if (order.length === 1 && order[0].prop === 'RANDOM') {
     order[0].sort = 'ASC';
   }
-  if (pieces[7] === '' || (order.length === 1 && !order[0].sort && order[0].prop !== 'RANDOM')) {
-    error = 'Invalid Query: Invalid ORDER BY';
+  if (order.length === 1 && !order[0].sort && order[0].prop !== 'RANDOM') {
+    error = 'Invalid Query: Invalid ORDER BY, missing sort';
     debug(error, pieces[7]);
     throw new Error(error);
   }
   order.forEach((ordering) => {
     if (!(ordering.sort === 'ASC' || ordering.sort === 'DESC')) {
-      error = `Invalid Query: Invalid ORDER BY, sort must be one of ASC or DESC, got ${ordering.sort}`;
+      error = `Invalid Query: Invalid ORDER BY, sort must be one of ASC or DESC, got ${String(ordering.sort)}`;
       debug(error, pieces[7]);
       throw new Error(error);
     }

@@ -72,11 +72,11 @@ test('validateQuery: throws an error when missing ORDER BY', (t) => {
 test('validateQuery: throws an error when ORDER BY is invalid', (t) => {
   t.throws(() => {
     validateQuery('SELECT * FROM table WHERE field IS 7 ORDER BY');
-  }, { message: 'Invalid Query: Invalid ORDER BY' });
+  }, { message: 'Invalid Query: Invalid ORDER BY, empty ORDER BY' });
 
   t.throws(() => {
     validateQuery('SELECT * FROM table WHERE field IS 7 ORDER BY field LIMIT 7');
-  }, { message: 'Invalid Query: Invalid ORDER BY' });
+  }, { message: 'Invalid Query: Invalid ORDER BY, missing sort' });
 
   t.throws(() => {
     validateQuery('SELECT * FROM table WHERE field IS 7 ORDER BY field DES LIMIT 7');

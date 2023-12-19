@@ -4,7 +4,8 @@ import path from 'node:path';
 import processQuery from './query-tools.js';
 
 let debug = (..._) => {};
-/* c8 ignore next */
+/* c8 ignore next 2 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 try { const { default: d } = await import('debug'); debug = d('Uttori.StorageProvider.JSON'); } catch {}
 
 /**
@@ -24,17 +25,13 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.StoragePro
  * @property {boolean} [useCache] Should we cache files in memory?
  * @property {number} [spacesDocument] The spaces parameter for JSON stringifying documents.
  * @property {number} [spacesHistory] The spaces parameter for JSON stringifying history.
+ * @property {Record<string, string[]>} [events] The events to listen for.
  */
 
 /**
  * Storage for Uttori documents using JSON files stored on the local file system.
- * @property {object} config - The configuration object.
- * @property {string} config.contentDirectory - The directory to store documents.
- * @property {string} config.historyDirectory - The directory to store document histories.
- * @property {string} [config.extension='json'] - The file extension to use for file.
- * @property {number} [config.spacesDocument=undefined] - The spaces parameter for JSON stringifying documents.
- * @property {number} [config.spacesHistory=undefined] - The spaces parameter for JSON stringifying history.
- * @property {object} documents - The collection of documents where the slug is the key and the value is the document.
+ * @property {StorageProviderConfig} config The configuration object.
+ * @property {Record<string, UttoriDocument>} documents The collection of documents where the slug is the key and the value is the document.
  * @example <caption>Init StorageProvider</caption>
  * const storageProvider = new StorageProvider({ contentDirectory: 'content', historyDirectory: 'history', spacesDocument: 2 });
  * @class
@@ -71,37 +68,30 @@ class StorageProvider {
     };
 
     this.refresh = true;
+    /** @type {Record<string, UttoriDocument>} The collection of documents where the slug is the key and the value is the document. */
     this.documents = {};
 
     // Ensure the directories exist.
-    StorageProvider.ensureDirectory(this.config.contentDirectory);
-    StorageProvider.ensureDirectory(this.config.historyDirectory);
-
-    this.all = this.all.bind(this);
-    this.getQuery = this.getQuery.bind(this);
-    this.get = this.get.bind(this);
-    this.getHistory = this.getHistory.bind(this);
-    this.getRevision = this.getRevision.bind(this);
-    this.add = this.add.bind(this);
-    this.updateValid = this.updateValid.bind(this);
-    this.update = this.update.bind(this);
-    this.delete = this.delete.bind(this);
-    this.updateHistory = this.updateHistory.bind(this);
+    // eslint-disable-next-line no-console
+    StorageProvider.ensureDirectory(this.config.contentDirectory).catch(console.error);
+    // eslint-disable-next-line no-console
+    StorageProvider.ensureDirectory(this.config.historyDirectory).catch(console.error);
   }
 
   /**
    * Returns all documents.
-   * @returns {Promise<object>} All documents.
+   * @returns {Promise<Record<string, UttoriDocument>>} All documents.
    * @example
    * storageProvider.all();
    * ➜ { first-document: { slug: 'first-document', ... }, ...}
    */
-  async all() {
+  all = async () => {
     debug('all');
     if (this.config.useCache && this.refresh === false) {
       return this.documents;
     }
 
+    /** @type {Record<string, UttoriDocument>} */
     const documents = {};
     try {
       const fileNames = await fs.readdir(this.config.contentDirectory);
@@ -111,6 +101,8 @@ class StorageProvider {
         debug('all: Reading', file);
         // eslint-disable-next-line no-await-in-loop
         const content = await fs.readFile(file, 'utf8');
+        /** @type {UttoriDocument} */
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const data = JSON.parse(content);
         documents[data.slug] = data;
       }
@@ -123,7 +115,7 @@ class StorageProvider {
       debug('all: Error:', error);
     }
     return documents;
-  }
+  };
 
   /**
    * Returns all documents matching a given query.
@@ -131,11 +123,11 @@ class StorageProvider {
    * @param {string} query - The conditions on which documents should be returned.
    * @returns {Promise<UttoriDocument[]|number>} Promise object represents all matching documents.
    */
-  async getQuery(query) {
+  getQuery = async (query) => {
     debug('getQuery:', query);
     const all = await this.all();
     return processQuery(query, Object.values(all));
-  }
+  };
 
   /**
    * Returns a document for a given slug.
@@ -143,7 +135,7 @@ class StorageProvider {
    * @param {string} slug - The slug of the document to be returned.
    * @returns {Promise<UttoriDocument|undefined>} Promise object represents the returned UttoriDocument.
    */
-  async get(slug) {
+  get = async (slug) => {
     debug('get: slug:', slug);
     if (!slug) {
       debug('get: Cannot get document without slug.');
@@ -161,19 +153,20 @@ class StorageProvider {
     debug('get: file', file);
     try {
       const content = await fs.readFile(file, 'utf8');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return JSON.parse(content);
     } catch (error) {
       debug(`get: Error reading "${file}":`, error);
       return undefined;
     }
-  }
+  };
 
   /**
    * Saves a document to the file system.
    * @async
    * @param {UttoriDocument} document - The document to be added to the collection.
    */
-  async add(document) {
+  add = async (document) => {
     if (!document || !document.slug) {
       debug('add: Cannot add, missing slug.');
       return;
@@ -202,7 +195,7 @@ class StorageProvider {
         debug('add: Error creating content file:', error);
       }
     }
-  }
+  };
 
   /**
    * Updates a document and saves to the file system.
@@ -211,7 +204,7 @@ class StorageProvider {
    * @param {UttoriDocument} document - The document to be updated in the collection.
    * @param {string} originalSlug - The original slug identifying the document, or the slug if it has not changed.
    */
-  async updateValid(document, originalSlug) {
+  updateValid = async (document, originalSlug) => {
     debug('updateValid');
     if (this.config.updateTimestamps) {
       document.updateDate = Date.now();
@@ -230,7 +223,7 @@ class StorageProvider {
     } /* c8 ignore next 2 */ catch (error) {
       debug('updateValid: Error updating content file:', error);
     }
-  }
+  };
 
   /**
    * Updates a document and figures out how to save to the file system.
@@ -239,7 +232,7 @@ class StorageProvider {
    * @param {UttoriDocument} params.document - The document to be updated in the collection.
    * @param {string} params.originalSlug - The original slug identifying the document, or the slug if it has not changed.
    */
-  async update({ document, originalSlug }) {
+  update = async ({ document, originalSlug }) => {
     debug('update');
     if (!document || !document.slug) {
       debug('Cannot update, missing slug.');
@@ -277,14 +270,14 @@ class StorageProvider {
       debug(`update: No document found to update with slug "${originalSlug}", adding document with slug "${document.slug}"`);
       await this.add(document);
     }
-  }
+  };
 
   /**
    * Removes a document from the file system.
    * @async
    * @param {string} slug - The slug identifying the document.
    */
-  async delete(slug) {
+  delete = async (slug) => {
     debug('delete:', slug);
     const existing = await this.get(slug);
     if (existing) {
@@ -306,7 +299,7 @@ class StorageProvider {
     } else {
       debug('Document not found:', slug);
     }
-  }
+  };
 
   /**
    * Returns the history of edits for a given slug.
@@ -314,13 +307,14 @@ class StorageProvider {
    * @param {string} slug - The slug of the document to get history for.
    * @returns {Promise<string[]>} Promise object represents the returned history.
    */
-  async getHistory(slug) {
+  getHistory = async (slug) => {
     debug('getHistory', slug);
     if (!slug) {
       debug('Cannot get document history without slug.', slug);
       return [];
     }
 
+    /** @type {string[]} The history of edits for this slug. */
     let history = [];
     const directory = path.join(this.config.historyDirectory, sanitize(`${slug}`));
     debug('getHistory: directory', directory);
@@ -335,7 +329,7 @@ class StorageProvider {
     }
     debug('getHistory: history', history);
     return history;
-  }
+  };
 
   /**
    * Returns a specifc revision from the history of edits for a given slug and revision timestamp.
@@ -345,7 +339,7 @@ class StorageProvider {
    * @param {string|number} params.revision - The unix timestamp of the history to be returned.
    * @returns {Promise<UttoriDocument|undefined>} Promise object represents the returned revision of the document.
    */
-  async getRevision({ slug, revision }) {
+  getRevision = async ({ slug, revision }) => {
     debug('getRevision', slug, revision);
     if (!slug) {
       debug('getRevision: Cannot get document history without slug.', slug);
@@ -359,12 +353,13 @@ class StorageProvider {
       const file = path.join(this.config.historyDirectory, sanitize(`${slug}`), sanitize(`${revision}.${this.config.extension}`));
       debug('getRevision: Reading history file:', file);
       const content = await fs.readFile(file, 'utf8');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return JSON.parse(content);
     } catch (error) {
       debug('getRevision: Error reading history file:', error);
       return undefined;
     }
-  }
+  };
 
   // Format Specific Methods
 
@@ -375,7 +370,7 @@ class StorageProvider {
    * @param {string} content - The revision of the document to be saved.
    * @param {string} [originalSlug] - The original slug identifying the document, or the slug if it has not changed.
    */
-  async updateHistory(slug, content, originalSlug) {
+  updateHistory = async (slug, content, originalSlug) => {
     debug('updateHistory:', slug, content, originalSlug);
     const original_directory = path.join(this.config.historyDirectory, sanitize(`${originalSlug}`));
     const new_directory = path.join(this.config.historyDirectory, sanitize(`${slug}`));
@@ -434,7 +429,7 @@ class StorageProvider {
     } /* c8 ignore next 2 */ catch (error) {
       debug('updateHistory: Error creating history file:', error);
     }
-  }
+  };
 
   /**
    * Ensure a directory exists, and if not create it.
