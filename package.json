@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "@uttori/event-dispatcher": "^2.0.2",
-    "ramda": "^0.29.1",
     "sanitize-filename": "^1.6.3"
   },
   "optionalDependencies": {

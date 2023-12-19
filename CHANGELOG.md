@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. This projec
 - 🎁 Convert to be a module, and require Node v20
 - 🎁 Remove dependency on `uttori-utilities`
 - 🎁 Remove dependency on `fs-extra`
+- 🎁 Remove dependency on `ramda`
 - 🎁 Update dependencies
 - 🎁 Update dev dependencies
 - 🛠 Update ESLint configuration

@@ -430,7 +430,7 @@ test('#parse(sql, evaluator): can parse arrays back to arrays', (t) => {
 });
 
 test('#parse(sql, evaluator): "Evaluation" is subjective, and this can be exploited to convert the default object-based structure of the AST into something else, like this array-based structure', (t) => {
-  const sql = 'name = "First Last" AND age >= 27';
+  const sql = '(name = "First Last" AND age >= 27)';
   const parser = new SqlWhereParser();
 
   const parsed = parser.parse(sql, (operatorValue, operands) => [operatorValue, operands]);

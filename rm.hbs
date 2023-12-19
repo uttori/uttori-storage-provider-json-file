@@ -47,13 +47,10 @@ npm install --save @uttori/storage-provider-json-file
 ```js
 // When part of UttoriWiki:
 import { Plugin as StorageProviderJSON } from '@uttori/storage-provider-json-file';
-// or
-const { Plugin: StorageProviderJSON } = require('@uttori/storage-provider-json-file');
 
 // When stand alone:
 import StorageProvider from '@uttori/storage-provider-json-file';
-// or
-const { StorageProvider } = require('@uttori/storage-provider-json-file');
+
 const s = new StorageProvider({
   contentDirectory: 'example/content',
   historyDirectory: 'example/history',
@@ -93,7 +90,7 @@ const results = await s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_N
 
 To run the test suite, first install the dependencies, then run `npm test`:
 
-```bash
+```sh
 npm install
 npm test
 DEBUG=Uttori* npm test

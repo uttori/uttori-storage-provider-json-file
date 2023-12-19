@@ -28,6 +28,15 @@ const OPERATOR_TYPE_TERNARY = 3;
  * @class
  */
 class Operator {
+  /** @type {string | symbol} The value. */
+  value;
+
+  /** @type {number | symbol} The type of operator. */
+  type;
+
+  /** @type {number} Priority to sort the operators with. */
+  precedence;
+
   /**
    * Creates an instance of Operator.
    * @param {string | symbol} value The value.
@@ -36,11 +45,8 @@ class Operator {
    * @class
    */
   constructor(value, type, precedence) {
-    /** @type {string | symbol} The value. */
     this.value = value;
-    /** @type {number | symbol} The type of operator. */
     this.type = type;
-    /** @type {number} Priority to sort the operators with. */
     this.precedence = precedence;
   }
 

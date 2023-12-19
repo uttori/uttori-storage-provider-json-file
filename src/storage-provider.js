@@ -97,7 +97,7 @@ class StorageProvider {
       const fileNames = await fs.readdir(this.config.contentDirectory);
       const validFiles = fileNames.filter((name) => (name.length >= 6) && name.endsWith(this.config.extension));
       for (const name of validFiles) {
-        const file = path.join(this.config.contentDirectory, `${path.parse(name).name}.${this.config.extension}`);
+        const file = path.join(this.config.contentDirectory, name);
         debug('all: Reading', file);
         // eslint-disable-next-line no-await-in-loop
         const content = await fs.readFile(file, 'utf8');
@@ -106,6 +106,15 @@ class StorageProvider {
         const data = JSON.parse(content);
         documents[data.slug] = data;
       }
+      // TODO: This is resolving out of order or with an extra document.
+      // const readPromises = validFiles.map(async (name) => {
+      //   const file = path.join(this.config.contentDirectory, name);
+      //   const content = await fs.readFile(file, 'utf8');
+      //   /** @type {UttoriDocument} */
+      //   const data = JSON.parse(content);
+      //   documents[data.slug] = data;
+      // });
+      // await Promise.all(readPromises);
       debug('all: found', Object.values(documents).length);
       if (this.config.useCache) {
         this.documents = documents;

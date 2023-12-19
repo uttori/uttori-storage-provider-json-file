@@ -1,3 +1,8 @@
+let debug = (..._) => {};
+/* c8 ignore next 2 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+try { const { default: d } = await import('debug'); debug = d('Uttori.Tokenizer'); } catch {}
+
 const MODE_NONE = 'modeNone';
 const MODE_DEFAULT = 'modeDefault';
 const MODE_MATCH = 'modeMatch';
@@ -5,48 +10,68 @@ const MODE_MATCH = 'modeMatch';
 /**
  * Parse a string into a token structure.
  * Create an instance of this class for each new string you wish to parse.
- * @property {TokenizeThis} factory - Holds the processed configuration.
- * @property {string} str - The string to tokenize.
- * @property {Function} forEachToken - The function to call for teach token.
- * @property {string} previousCharacter - The previous character consumed.
- * @property {string} toMatch - The current quote to match.
- * @property {string} currentToken - The current token being created.
- * @property {Array} modeStack - Keeps track of the current "mode" of tokenization. The tokenization rules are different depending if you are tokenizing an explicit string (surrounded by quotes), versus a non-explicit string (not surrounded by quotes).
+ * @property {TokenizeThis} factory Holds the processed configuration.
+ * @property {string} str The string to tokenize.
+ * @property {Function} forEachToken The function to call for teach token.
+ * @property {string} previousCharacter The previous character consumed.
+ * @property {string} toMatch The current quote to match.
+ * @property {string} currentToken The current token being created.
+ * @property {string[]} modeStack Keeps track of the current "mode" of tokenization. The tokenization rules are different depending if you are tokenizing an explicit string (surrounded by quotes), versus a non-explicit string (not surrounded by quotes).
  * @example <caption>Init Tokenizer</caption>
  * const tokenizerInstance = new Tokenizer(this, str, forEachToken);
  * return tokenizerInstance.tokenize();
  * @class
  */
 class Tokenizer {
+  /** @type {TokenizeThis} Holds the processed configuration. */
+  factory;
+
+  /** @type {string} The string to tokenize. */
+  str;
+
+  /** @type {Function} The function to call for teach token. */
+  forEachToken;
+
+  /** @type {string} The previous character consumed. */
+  previousCharacter = '';
+
+  /** @type {string} The current quote to match. */
+  toMatch = '';
+
+  /** @type {string} The current token being created. */
+  currentToken = '';
+
+  /** @type {('modeNone' | 'modeDefault' | 'modeMatch')[]} Keeps track of the current "mode" of tokenization. The tokenization rules are different depending if you are tokenizing an explicit string (surrounded by quotes), versus a non-explicit string (not surrounded by quotes). */
+  modeStack = [MODE_NONE];
+
   /**
    * @param {TokenizeThis} factory - Holds the processed configuration.
    * @param {string} str - The string to tokenize.
-   * @param {Function} forEachToken - The function to call for teach token.
+   * @param {(token: (null | true | false | number | string), surroundedBy: string) => void} forEachToken - The function to call for teach token.
    */
   constructor(factory, str, forEachToken) {
     this.factory = factory;
     this.str = str;
     this.forEachToken = forEachToken;
-    this.previousCharacter = '';
-    this.toMatch = '';
-    this.currentToken = '';
-    this.modeStack = [MODE_NONE];
   }
 
   /**
    * Get the current mode from the stack.
-   * @returns {string} The current mode from the stack.
+   * @returns {'modeNone' | 'modeDefault' | 'modeMatch' | string} The current mode from the stack.
    */
   getCurrentMode() {
-    return this.modeStack[this.modeStack.length - 1];
+    const mode = this.modeStack[this.modeStack.length - 1];
+    debug('getCurrentMode:', mode);
+    return mode;
   }
 
   /**
    * Set the current mode on the stack.
-   * @param {string} mode - The mode to set on the stack.
+   * @param {'modeNone' | 'modeDefault' | 'modeMatch'} mode - The mode to set on the stack.
    * @returns {number} The size of the mode stack.
    */
   setCurrentMode(mode) {
+    debug('setCurrentMode:', mode);
     return this.modeStack.push(mode);
   }
 
@@ -55,6 +80,7 @@ class Tokenizer {
    * @returns {string | undefined} The last mode of the stack.
    */
   completeCurrentMode() {
+    debug('completeCurrentMode');
     const currentMode = this.getCurrentMode();
 
     if (currentMode === MODE_DEFAULT) {
@@ -72,52 +98,54 @@ class Tokenizer {
 
   /**
    * Parse the provided token.
-   * @param {string | boolean | number | null} token The token to parse.
+   * @param {string} token The token to parse.
    */
   push(token) {
+    debug('push:', token);
     let surroundedBy = '';
 
-    if (typeof token === 'string' && this.factory.convertLiterals && this.getCurrentMode() !== MODE_MATCH) {
-      // Convert the string version of literals into their literal types.
-      switch (token.toLowerCase()) {
-        case 'null':
-          token = null;
-          break;
-        case 'true':
-          token = true;
-          break;
-        case 'false':
-          token = false;
-          break;
-        default:
-          if (Number.isFinite(Number(token))) {
-            token = Number(token);
-          }
-          break;
-      }
+    /** @type {null | true | false | number | string}  */
+    let newToken = token;
+    if (this.factory.config.convertLiterals && this.getCurrentMode() !== MODE_MATCH) {
+      newToken = this.convertToken(token);
     } else {
       // The purpose of also transmitting the surroundedBy quote is to inform whether or not
       // the token was an explicit string, versus a non-explicit string, e.g. "=" vs. =
       surroundedBy = this.toMatch;
     }
 
-    /* c8 ignore next */
-    if (this.forEachToken) {
-      this.forEachToken(token, surroundedBy);
+    this.forEachToken?.(newToken, surroundedBy);
+  }
+
+  /**
+   * Convert the string version of literals into their literal types.
+   * @param {string} token The token to convert.
+   * @returns {null | true | false | number | string} The converted token.
+   */
+  convertToken(token) {
+    debug('convertToken:', token);
+    const lowerToken = token.toLowerCase();
+    if (lowerToken === 'null') {
+      return null;
     }
+    if (lowerToken === 'true') {
+      return true;
+    }
+    if (lowerToken === 'false') {
+      return false;
+    }
+    const number = Number(token);
+    return Number.isFinite(number) ? number : token;
   }
 
   /**
    * Process the string.
    */
   tokenize() {
-    let index = 0;
-
-    while (index < this.str.length) {
-      this.consume(this.str.charAt(index++));
-    }
-
+    debug('tokenize');
+    [...this.str].forEach((character) => this.consume(character));
     while (this.getCurrentMode() !== MODE_NONE) {
+      debug(`tokenize: ${this.currentToken}`);
       this.completeCurrentMode();
     }
   }
@@ -127,17 +155,19 @@ class Tokenizer {
    * @param {string} character - The character to process.
    */
   consume(character) {
+    debug(`consume: "${character}"`);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this[this.getCurrentMode()](character);
     this.previousCharacter = character;
   }
 
   /**
-   * Changs the current mode depending on the character.
+   * Changes the current mode depending on the character.
    * @param {string} character - The character to consider.
    */
   [MODE_NONE](character) {
-    if (!this.factory.matchMap[character]) {
+    debug(`[${MODE_NONE}]: "${character}"`);
+    if (!this.factory.matchMap.has(character)) {
       this.setCurrentMode(MODE_DEFAULT);
       this.consume(character);
       return;
@@ -153,13 +183,14 @@ class Tokenizer {
    * @returns {string | undefined} The current token.
    */
   [MODE_DEFAULT](character) {
+    debug(`[${MODE_DEFAULT}]: "${character}"`);
     // If we encounter a delimiter, its time to push out the current token.
-    if (this.factory.delimiterMap[character]) {
+    if (this.factory.delimiterMap.has(character)) {
       return this.completeCurrentMode();
     }
 
     // If we encounter a quote, only push out the current token if there's a sub-token directly before it.
-    if (this.factory.matchMap[character]) {
+    if (this.factory.matchMap.has(character)) {
       let tokenizeIndex = 0;
 
       while (tokenizeIndex < this.factory.tokenizeList.length) {
@@ -181,6 +212,7 @@ class Tokenizer {
    * Parse out potential tokenizable substrings out of the current token.
    */
   pushDefaultModeTokenizables() {
+    debug('pushDefaultModeTokenizables');
     let tokenizeIndex = 0;
     let lowestIndexOfTokenize = Infinity;
     let toTokenize = null;
@@ -210,7 +242,6 @@ class Tokenizer {
 
     // Push out the substring, then modify the current token to be everything past that substring.
     // Recursively call this function again until there are no more substrings to tokenize.
-    /* c8 ignore else */
     if (lowestIndexOfTokenize !== -1) {
       this.push(toTokenize);
       this.currentToken = this.currentToken.slice(lowestIndexOfTokenize + toTokenize.length);
@@ -224,8 +255,9 @@ class Tokenizer {
    * @returns {string | undefined} - The current token.
    */
   [MODE_MATCH](character) {
+    debug(`[${MODE_MATCH}]: "${character}"`);
     if (character === this.toMatch) {
-      if (this.previousCharacter !== this.factory.escapeCharacter) {
+      if (this.previousCharacter !== this.factory.config.escapeCharacter) {
         return this.completeCurrentMode();
       }
       this.currentToken = this.currentToken.slice(0, this.currentToken.length - 1);
@@ -258,8 +290,8 @@ const sortTokenizableSubstrings = (a, b) => {
  * @property {string[]} [shouldTokenize] The list of tokenizable substrings.
  * @property {string[]} [shouldMatch] The list of quotes to match explicit strings with.
  * @property {string[]} [shouldDelimitBy] The list of delimiters.
- * @property {boolean} [convertLiterals] If literals should be converted or not, ie 'true' -> true.
- * @property {string} [escapeCharacter] Character to use as an escape in strings.
+ * @property {boolean} convertLiterals If literals should be converted or not, ie 'true' -> true.
+ * @property {string} escapeCharacter Character to use as an escape in strings.
  */
 
 /**
@@ -278,12 +310,37 @@ const sortTokenizableSubstrings = (a, b) => {
  * this.tokenizer.tokenize('(sql)', (token, surroundedBy) => { ... });
  * @class
  */
-class TokenizeThis {
+export class TokenizeThis {
+  /** @type {boolean} If literals should be converted or not, ie 'true' -> true. */
+  convertLiterals = true;
+
+  /** @type {string} Character to use as an escape in strings. */
+  escapeCharacter = '\\';
+
+  /** @type {string[]} Holds the list of tokenizable substrings. */
+  tokenizeList = [];
+
+  /** @type {Map} Holds an easy lookup map of tokenizable substrings. */
+  tokenizeMap = new Map();
+
+  /** @type {Array} Holds the list of quotes to match explicit strings with. */
+  matchList = [];
+
+  /** @type {Map} Holds an easy lookup map of quotes to match explicit strings with. */
+  matchMap = new Map();
+
+  /** @type {Array} Holds the list of delimiters. */
+  delimiterList = [];
+
+  /** @type {Map} Holds an easy lookup map of delimiters. */
+  delimiterMap = new Map();
+
   /**
    * @param {TokenizeThisConfig} config The configuration object.
    */
   constructor(config) {
-    config = {
+    /** @type {TokenizeThisConfig} The current configuration. */
+    this.config = {
       shouldTokenize: ['(', ')', ',', '*', '/', '%', '+', '-', '=', '!=', '!', '<', '>', '<=', '>=', '^'],
       shouldMatch: ['"', "'", '`'],
       shouldDelimitBy: [' ', '\n', '\r', '\t'],
@@ -292,46 +349,24 @@ class TokenizeThis {
       ...(config || {}),
     };
 
-    this.convertLiterals = config.convertLiterals;
-    this.escapeCharacter = config.escapeCharacter;
-
-    /** @type {string[]} Holds the list of tokenizable substrings. */
-    this.tokenizeList = [];
-    this.tokenizeMap = {};
-    this.matchList = [];
-    this.matchMap = {};
-    this.delimiterList = [];
-    this.delimiterMap = {};
-
     // Sorts the tokenizable substrings based on their length, such that "<=" will get matched before "<" does.
-    config.shouldTokenize?.sort(sortTokenizableSubstrings).forEach((token) => {
-      if (!this.tokenizeMap[token]) {
-        this.tokenizeList.push(token);
-        this.tokenizeMap[token] = token;
-      }
-    });
+    this.config.shouldTokenize
+      ?.sort(sortTokenizableSubstrings)
+      ?.forEach((token) => {
+        if (!this.tokenizeMap.has(token)) {
+          this.tokenizeList.push(token);
+          this.tokenizeMap.set(token, token);
+        }
+      });
 
-    config.shouldMatch?.forEach((match) => {
-      if (!this.matchMap[match]) {
-        this.matchList.push(match);
-        this.matchMap[match] = match;
-      }
-    });
-
-    config.shouldDelimitBy?.forEach((delimiter) => {
-      if (!this.delimiterMap[delimiter]) {
-        this.delimiterList.push(delimiter);
-        this.delimiterMap[delimiter] = delimiter;
-      }
-    });
-
-    this.config = config;
+    this.config.shouldMatch?.forEach((match) => this.matchMap.set(match, match));
+    this.config.shouldDelimitBy?.forEach((delimiter) => this.delimiterMap.set(delimiter, delimiter));
   }
 
   /**
    * Creates a Tokenizer, then immediately calls "tokenize".
    * @param {string} input - The string to scan for tokens.
-   * @param {(token:string, surroundedBy:boolean) => void} forEachToken - Function to run over each token.
+   * @param {(token: (null | true | false | number | string), surroundedBy: string) => void} forEachToken - Function to run over each token.
    * @returns {*} The new Tokenizer instance after being tokenized.
    */
   tokenize(input, forEachToken) {

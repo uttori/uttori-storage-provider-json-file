@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs';
 import test from 'ava';
-import * as R from 'ramda';
 import StorageProvider from '../src/storage-provider.js';
 
 const tagExample = 'Example Tag';
@@ -111,13 +110,12 @@ test('getQuery(query): returns all unique tags from all the documents', async (t
     },
   ]);
 
-  const tags = R.pipe(
-    R.pluck('tags'),
-    R.flatten,
-    R.uniq,
-    R.filter(Boolean),
-    R.sort((a, b) => a.localeCompare(b)),
-  )(results);
+  const tags = [...results]
+  .map(result => result.tags) // equivalent to R.pluck('tags')
+  .flat() // equivalent to R.flatten
+  .filter((value, index, self) => self.indexOf(value) === index) // equivalent to R.uniq
+  .filter(Boolean) // equivalent to R.filter(Boolean)
+  .sort((a, b) => a.localeCompare(b)); // equivalent to R.sort((a, b) => a.localeCompare(b))
   t.deepEqual(tags, [tagExample, tagFake]);
 });
 
@@ -149,13 +147,12 @@ test('getQuery(query): returns all unique tags and slug from all the documents',
     },
   ]);
 
-  const tags = R.pipe(
-    R.pluck('tags'),
-    R.flatten,
-    R.uniq,
-    R.filter(Boolean),
-    R.sort((a, b) => a.localeCompare(b)),
-  )(results);
+  const tags = [...results]
+  .map(result => result.tags) // equivalent to R.pluck('tags')
+  .flat() // equivalent to R.flatten
+  .filter((value, index, self) => self.indexOf(value) === index) // equivalent to R.uniq
+  .filter(Boolean) // equivalent to R.filter(Boolean)
+  .sort((a, b) => a.localeCompare(b)); // equivalent to R.sort((a, b) => a.localeCompare(b))
   t.deepEqual(tags, [tagExample, tagFake]);
 });
 

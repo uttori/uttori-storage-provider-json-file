@@ -96,6 +96,7 @@
     "@typescript-eslint/no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
     "object-curly-newline": 0,
     "optimize-regex/optimize-regex": "warn",
+    "ramda/prefer-ramda-boolean": 0,
     "security/detect-non-literal-fs-filename": 0,
     "security/detect-non-literal-require": 0,
     "security/detect-object-injection": 0,

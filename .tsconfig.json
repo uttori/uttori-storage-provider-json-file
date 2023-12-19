@@ -15,6 +15,7 @@
     "downlevelIteration": true,
     "emitDeclarationOnly": true,
     "extendedDiagnostics": true,
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
     "moduleResolution": "nodenext",
     "outDir": "dist",
     "noEmit": false,

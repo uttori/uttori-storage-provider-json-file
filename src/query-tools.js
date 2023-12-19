@@ -1,4 +1,3 @@
-import * as R from 'ramda';
 import parseQueryToRamda from './parse-query-to-ramda.js';
 import validateQuery from './validate-query.js';
 import fyShuffle from './fisher-yates-shuffle.js';
@@ -27,8 +26,9 @@ const processQuery = (query, objects) => {
   debug('Found where:', where);
   debug('Found order:', order);
   debug('Found limit:', limit);
+  /** @type {Function[]} */
   const whereFunctions = parseQueryToRamda(where);
-  const filtered = R.filter(whereFunctions)(objects);
+  const filtered = objects.filter(whereFunctions);
 
   // Short circuit when we only want the counts.
   if (fields.includes('COUNT(*)')) {
@@ -40,22 +40,32 @@ const processQuery = (query, objects) => {
   if (order[0].prop === 'RANDOM') {
     output = fyShuffle(filtered);
   } else {
-    output = R.sortWith(
-      order.map((value) => {
-        const sorter = value.sort === 'ASC' ? R.ascend : R.descend;
-        return sorter(R.prop(value.prop));
-      }),
-    )(filtered);
+    output = filtered.sort((a, b) => {
+      for (const value of order) {
+        const direction = value.sort === 'ASC' ? 1 : -1;
+        if (a[value.prop] < b[value.prop]) return -1 * direction;
+        if (a[value.prop] > b[value.prop]) return 1 * direction;
+      }
+      return 0;
+    });
   }
 
   // Limit
   if (limit > 0) {
-    output = R.take(limit, output);
+    output = output.slice(0, limit);
   }
 
   // Select
   if (!fields.includes('*')) {
-    output = R.lift(R.pickAll(fields))(output);
+    output = output.map((item) => {
+      const newItem = {};
+      fields.forEach((field) => {
+        if (Object.hasOwn(item, field)) {
+          newItem[field] = item[field];
+        }
+      });
+      return newItem;
+    });
   }
 
   return output;

@@ -1,5 +1,4 @@
 import test from 'ava';
-import * as R from 'ramda';
 import SqlWhereParser from '../src/where-parser.js';
 import parseQueryToRamda from '../src/parse-query-to-ramda.js';
 
@@ -45,7 +44,7 @@ const filter = (query) => {
   const parser = new SqlWhereParser();
   const ast = parser.parse(query);
   const filters = parseQueryToRamda(ast);
-  return R.filter(filters)([...docs]);
+  return [...docs].filter(filters);
 };
 
 let sql;
@@ -194,6 +193,10 @@ test('Level 0: EXCLUDES', (t) => {
   out = filter(sql);
   t.is(out.length, 3);
 
+  sql = 'tags EXCLUDES (old)';
+  out = filter(sql);
+  t.is(out.length, 3);
+
   sql = 'tags EXCLUDES ("new", "cool")';
   out = filter(sql);
   t.is(out.length, 1);
@@ -215,6 +218,22 @@ test('Level 0: BETWEEN', (t) => {
   sql = 'age BETWEEN 20 AND 60';
   out = filter(sql);
   t.is(out.length, 2);
+});
+
+test('Level 0: Missing Key', (t) => {
+  sql = 'age WAKA 20';
+  t.notThrows(() => {
+    const ast = {
+      "WAKA": [
+        "slug",
+        [
+          "example-title",
+          "fake"
+        ]
+      ]
+    };
+    parseQueryToRamda(ast);
+  });
 });
 
 test('Level 1: >= AND <=', (t) => {

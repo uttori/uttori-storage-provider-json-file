@@ -9,10 +9,7 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.SqlWherePa
 /**
  * @typedef {object} SqlWhereParserConfig
  * @property {Record<string | number | symbol, number | symbol>[]} operators A collection of operators in precedence order.
- * @property {object} tokenizer A Tokenizer config.
- * @property {string[]} tokenizer.shouldTokenize A collection of items to tokenize.
- * @property {string[]} tokenizer.shouldMatch A collection of items to consider as wrapping tokens.
- * @property {string[]} tokenizer.shouldDelimitBy A collection of items to consider as whitespace to delimit by.
+ * @property {import('./tokenizer.js').TokenizeThisConfig} tokenizer A Tokenizer config.
  * @property {boolean} wrapQuery Wraps queries in surround parentheses when true.
  */
 
@@ -21,7 +18,7 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.SqlWherePa
  * The tree is object-based, where each key is the operator, and its value is an array of the operands.
  * The number of operands depends on if the operation is defined as unary, binary, or ternary in the config.
  * @property {SqlWhereParserConfig} config The configuration object.
- * @property {TokenizeThis} tokenizer The tokenizer instance.
+ * @property {import('./tokenizer.js').TokenizeThis} tokenizer The tokenizer instance.
  * @property {object} operators The operators from config converted to Operator objects.
  * @example <caption>Init SqlWhereParser</caption>
  * const parser = new SqlWhereParser();
@@ -92,10 +89,13 @@ class SqlWhereParser {
         shouldTokenize: ['(', ')', '[', ']', ',', '*', '/', '%', '+', '-', '=', '!=', '!', '<', '>', '<=', '>=', '^'],
         shouldMatch: ['"', "'", '`'],
         shouldDelimitBy: [' ', '\n', '\r', '\t'],
+        convertLiterals: true,
+        escapeCharacter: '\\',
       },
       wrapQuery: true,
       ...config,
     };
+    /** @type {import('./tokenizer.js').TokenizeThis} Tokenizer instance. */
     this.tokenizer = new TokenizeThis(config.tokenizer);
     /** @type {Record<string | symbol, Operator>} The operators from config converted to Operator objects. */
     this.operators = {};
@@ -140,6 +140,7 @@ class SqlWhereParser {
       tokenCount++;
 
       // Read a token.
+      debug(`token: "${token}", surroundedBy: "${surroundedBy}"`);
       if (typeof token === 'string' && !surroundedBy) {
         /** @type {string | symbol} */
         let normalizedToken = token.toUpperCase();

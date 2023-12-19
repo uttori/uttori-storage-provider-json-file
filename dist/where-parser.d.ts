@@ -7,11 +7,7 @@ export type SqlWhereParserConfig = {
     /**
      * A Tokenizer config.
      */
-    tokenizer: {
-        shouldTokenize: string[];
-        shouldMatch: string[];
-        shouldDelimitBy: string[];
-    };
+    tokenizer: import('./tokenizer.js').TokenizeThisConfig;
     /**
      * Wraps queries in surround parentheses when true.
      */
@@ -20,10 +16,7 @@ export type SqlWhereParserConfig = {
 /**
  * @typedef {object} SqlWhereParserConfig
  * @property {Record<string | number | symbol, number | symbol>[]} operators A collection of operators in precedence order.
- * @property {object} tokenizer A Tokenizer config.
- * @property {string[]} tokenizer.shouldTokenize A collection of items to tokenize.
- * @property {string[]} tokenizer.shouldMatch A collection of items to consider as wrapping tokens.
- * @property {string[]} tokenizer.shouldDelimitBy A collection of items to consider as whitespace to delimit by.
+ * @property {import('./tokenizer.js').TokenizeThisConfig} tokenizer A Tokenizer config.
  * @property {boolean} wrapQuery Wraps queries in surround parentheses when true.
  */
 /**
@@ -31,7 +24,7 @@ export type SqlWhereParserConfig = {
  * The tree is object-based, where each key is the operator, and its value is an array of the operands.
  * The number of operands depends on if the operation is defined as unary, binary, or ternary in the config.
  * @property {SqlWhereParserConfig} config The configuration object.
- * @property {TokenizeThis} tokenizer The tokenizer instance.
+ * @property {import('./tokenizer.js').TokenizeThis} tokenizer The tokenizer instance.
  * @property {object} operators The operators from config converted to Operator objects.
  * @example <caption>Init SqlWhereParser</caption>
  * const parser = new SqlWhereParser();
@@ -52,7 +45,8 @@ declare class SqlWhereParser {
      * @class
      */
     constructor(config?: SqlWhereParserConfig);
-    tokenizer: TokenizeThis;
+    /** @type {import('./tokenizer.js').TokenizeThis} Tokenizer instance. */
+    tokenizer: import('./tokenizer.js').TokenizeThis;
     /** @type {Record<string | symbol, Operator>} The operators from config converted to Operator objects. */
     operators: Record<string | symbol, Operator>;
     config: SqlWhereParserConfig;
@@ -79,6 +73,5 @@ declare class SqlWhereParser {
      */
     getOperator: (operatorValue: string | symbol) => any;
 }
-import TokenizeThis from './tokenizer.js';
 import Operator from './operator.js';
 //# sourceMappingURL=where-parser.d.ts.map
