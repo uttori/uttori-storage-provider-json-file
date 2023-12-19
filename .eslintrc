@@ -7,7 +7,6 @@
     "plugin:jsx-a11y/recommended",
     "plugin:n/recommended",
     "plugin:optimize-regex/all",
-    "plugin:ramda/recommended",
     "plugin:security/recommended-legacy",
     "plugin:sonarjs/recommended",
     "plugin:@typescript-eslint/recommended-type-checked"
@@ -22,7 +21,6 @@
     "no-inferred-method-name",
     "n",
     "optimize-regex",
-    "ramda",
     "security",
     "sonarjs",
     "xss"
@@ -96,7 +94,6 @@
     "@typescript-eslint/no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
     "object-curly-newline": 0,
     "optimize-regex/optimize-regex": "warn",
-    "ramda/prefer-ramda-boolean": 0,
     "security/detect-non-literal-fs-filename": 0,
     "security/detect-non-literal-require": 0,
     "security/detect-object-injection": 0,

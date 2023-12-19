@@ -10,8 +10,8 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.StoragePro
 /**
  * Processes a query string.
  * @param {string} query - The SQL-like query to parse.
- * @param {object[]} objects - An array of object to search within.
- * @returns {object[]|number} Returns an array of all matched documents, or a count.
+ * @param {import('./storage-provider.js').UttoriDocument[]} objects - An array of object to search within.
+ * @returns {import('./storage-provider.js').UttoriDocument[]|number} Returns an array of all matched documents, or a count.
  * @example
  * ```js
  * processQuery('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
@@ -28,6 +28,7 @@ const processQuery = (query, objects) => {
   debug('Found limit:', limit);
   /** @type {Function[]} */
   const whereFunctions = parseQueryToRamda(where);
+  /** @type {import('./storage-provider.js').UttoriDocument[]} */
   const filtered = objects.filter(whereFunctions);
 
   // Short circuit when we only want the counts.

@@ -44,7 +44,6 @@
     "eslint-plugin-n": "^16.4.0",
     "eslint-plugin-no-inferred-method-name": "^2.0.0",
     "eslint-plugin-optimize-regex": "^1.2.1",
-    "eslint-plugin-ramda": "^2.5.1",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-security": "^2",

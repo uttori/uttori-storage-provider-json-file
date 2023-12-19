@@ -375,4 +375,7 @@ export class TokenizeThis {
   }
 }
 
-export default TokenizeThis;
+export default {
+  Tokenizer,
+  TokenizeThis,
+};

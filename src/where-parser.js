@@ -1,5 +1,5 @@
 import Operator from './operator.js';
-import TokenizeThis from './tokenizer.js';
+import { TokenizeThis } from './tokenizer.js';
 
 let debug = (..._) => {};
 /* c8 ignore next 2 */

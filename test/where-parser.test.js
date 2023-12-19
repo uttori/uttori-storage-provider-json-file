@@ -2,7 +2,7 @@
 import test from 'ava';
 import SqlWhereParser from '../src/where-parser.js';
 import Operator from '../src/operator.js';
-import TokenizeThis from '../src/tokenizer.js';
+import { TokenizeThis } from '../src/tokenizer.js';
 
 test('parse(sql): parses the WHERE portion of an SQL-like string into an abstract syntax tree', (t) => {
   const sql = 'name = "First Last" AND age >= 27';

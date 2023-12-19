@@ -1,6 +1,6 @@
 /* eslint-disable no-console, no-loop-func */
 import test from 'ava';
-import TokenizeThis from '../src/tokenizer.js';
+import { TokenizeThis } from '../src/tokenizer.js';
 
 test('TokenizeThis: It turns a string into tokens!', (t) => {
   const tokenizer = new TokenizeThis();

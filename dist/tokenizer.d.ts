@@ -53,7 +53,11 @@ export class TokenizeThis {
      */
     tokenize(input: string, forEachToken: (token: (null | true | false | number | string), surroundedBy: string) => void): any;
 }
-export default TokenizeThis;
+declare namespace _default {
+    export { Tokenizer };
+    export { TokenizeThis };
+}
+export default _default;
 export type TokenizeThisConfig = {
     /**
      * The list of tokenizable substrings.
@@ -76,4 +80,98 @@ export type TokenizeThisConfig = {
      */
     escapeCharacter: string;
 };
+/**
+ * Parse a string into a token structure.
+ * Create an instance of this class for each new string you wish to parse.
+ * @property {TokenizeThis} factory Holds the processed configuration.
+ * @property {string} str The string to tokenize.
+ * @property {Function} forEachToken The function to call for teach token.
+ * @property {string} previousCharacter The previous character consumed.
+ * @property {string} toMatch The current quote to match.
+ * @property {string} currentToken The current token being created.
+ * @property {string[]} modeStack Keeps track of the current "mode" of tokenization. The tokenization rules are different depending if you are tokenizing an explicit string (surrounded by quotes), versus a non-explicit string (not surrounded by quotes).
+ * @example <caption>Init Tokenizer</caption>
+ * const tokenizerInstance = new Tokenizer(this, str, forEachToken);
+ * return tokenizerInstance.tokenize();
+ * @class
+ */
+declare class Tokenizer {
+    /**
+     * @param {TokenizeThis} factory - Holds the processed configuration.
+     * @param {string} str - The string to tokenize.
+     * @param {(token: (null | true | false | number | string), surroundedBy: string) => void} forEachToken - The function to call for teach token.
+     */
+    constructor(factory: TokenizeThis, str: string, forEachToken: (token: (null | true | false | number | string), surroundedBy: string) => void);
+    /** @type {TokenizeThis} Holds the processed configuration. */
+    factory: TokenizeThis;
+    /** @type {string} The string to tokenize. */
+    str: string;
+    /** @type {Function} The function to call for teach token. */
+    forEachToken: Function;
+    /** @type {string} The previous character consumed. */
+    previousCharacter: string;
+    /** @type {string} The current quote to match. */
+    toMatch: string;
+    /** @type {string} The current token being created. */
+    currentToken: string;
+    /** @type {('modeNone' | 'modeDefault' | 'modeMatch')[]} Keeps track of the current "mode" of tokenization. The tokenization rules are different depending if you are tokenizing an explicit string (surrounded by quotes), versus a non-explicit string (not surrounded by quotes). */
+    modeStack: ('modeNone' | 'modeDefault' | 'modeMatch')[];
+    /**
+     * Get the current mode from the stack.
+     * @returns {'modeNone' | 'modeDefault' | 'modeMatch' | string} The current mode from the stack.
+     */
+    getCurrentMode(): 'modeNone' | 'modeDefault' | 'modeMatch' | string;
+    /**
+     * Set the current mode on the stack.
+     * @param {'modeNone' | 'modeDefault' | 'modeMatch'} mode - The mode to set on the stack.
+     * @returns {number} The size of the mode stack.
+     */
+    setCurrentMode(mode: 'modeNone' | 'modeDefault' | 'modeMatch'): number;
+    /**
+     * Ends the current mode and removes it from the stack.
+     * @returns {string | undefined} The last mode of the stack.
+     */
+    completeCurrentMode(): string | undefined;
+    /**
+     * Parse the provided token.
+     * @param {string} token The token to parse.
+     */
+    push(token: string): void;
+    /**
+     * Convert the string version of literals into their literal types.
+     * @param {string} token The token to convert.
+     * @returns {null | true | false | number | string} The converted token.
+     */
+    convertToken(token: string): null | true | false | number | string;
+    /**
+     * Process the string.
+     */
+    tokenize(): void;
+    /**
+     * Adds a character with the current mode.
+     * @param {string} character - The character to process.
+     */
+    consume(character: string): void;
+    /**
+     * Parse out potential tokenizable substrings out of the current token.
+     */
+    pushDefaultModeTokenizables(): void;
+    /**
+     * Changes the current mode depending on the character.
+     * @param {string} character - The character to consider.
+     */
+    modeNone(character: string): void;
+    /**
+     * Checks the token for delimiter or quotes, else continue building token.
+     * @param {string} character - The character to consider.
+     * @returns {string | undefined} The current token.
+     */
+    modeDefault(character: string): string | undefined;
+    /**
+     * Checks for a completed match between characters.
+     * @param {string} character - The character to match.
+     * @returns {string | undefined} - The current token.
+     */
+    modeMatch(character: string): string | undefined;
+}
 //# sourceMappingURL=tokenizer.d.ts.map
