@@ -22,7 +22,6 @@
     "node": ">= 20"
   },
   "dependencies": {
-    "@uttori/event-dispatcher": "^2.0.2",
     "sanitize-filename": "^1.6.3"
   },
   "optionalDependencies": {
@@ -32,6 +31,7 @@
     "@types/node": "^20.10.5",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
+    "@uttori/event-dispatcher": "^2.0.2",
     "ava": "^6.0.1",
     "c8": "^8.0.1",
     "eslint": "^8.56.0",
