@@ -134,8 +134,7 @@ class StorageProvider {
    */
   getQuery = async (query) => {
     debug('getQuery:', query);
-    const all = await this.all();
-    return processQuery(query, Object.values(all));
+    return processQuery(query, Object.values(await this.all()));
   };
 
   /**

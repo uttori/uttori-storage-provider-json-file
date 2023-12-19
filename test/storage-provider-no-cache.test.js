@@ -248,7 +248,7 @@ test('get(slug): returns undefined when no document is found', async (t) => {
   t.is(document, undefined);
 });
 
-test('getHistory(slug): returns undefined when missing a slug', async (t) => {
+test('getHistory(slug): returns an empty array when missing a slug', async (t) => {
   const s = new StorageProvider(config);
   const history = await s.getHistory('');
   t.deepEqual(history, []);

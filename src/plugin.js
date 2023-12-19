@@ -90,6 +90,7 @@ class Plugin {
     if (!context || !context.hooks || typeof context.hooks.on !== 'function') {
       throw new Error("Missing event dispatcher in 'context.hooks.on(event, callback)' format.");
     }
+    /** @type {import('./storage-provider.js').StorageProviderConfig} */
     const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
     if (!config.events) {
       throw new Error("Missing events to listen to for in 'config.events'.");
