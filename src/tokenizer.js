@@ -1,7 +1,7 @@
-let debug = (..._) => {};
+// let debug = (..._) => {};
 /* c8 ignore next 2 */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-try { const { default: d } = await import('debug'); debug = d('Uttori.Tokenizer'); } catch {}
+// try { const { default: d } = await import('debug'); debug = d('Uttori.Tokenizer'); } catch {}
 
 const MODE_NONE = 'modeNone';
 const MODE_DEFAULT = 'modeDefault';
@@ -60,9 +60,8 @@ class Tokenizer {
    * @returns {'modeNone' | 'modeDefault' | 'modeMatch' | string} The current mode from the stack.
    */
   getCurrentMode() {
-    const mode = this.modeStack[this.modeStack.length - 1];
-    debug('getCurrentMode:', mode);
-    return mode;
+    // debug('getCurrentMode:', mode);
+    return this.modeStack[this.modeStack.length - 1];
   }
 
   /**
@@ -71,7 +70,7 @@ class Tokenizer {
    * @returns {number} The size of the mode stack.
    */
   setCurrentMode(mode) {
-    debug('setCurrentMode:', mode);
+    // debug('setCurrentMode:', mode);
     return this.modeStack.push(mode);
   }
 
@@ -80,7 +79,7 @@ class Tokenizer {
    * @returns {string | undefined} The last mode of the stack.
    */
   completeCurrentMode() {
-    debug('completeCurrentMode');
+    // debug('completeCurrentMode');
     const currentMode = this.getCurrentMode();
 
     if (currentMode === MODE_DEFAULT) {
@@ -101,7 +100,7 @@ class Tokenizer {
    * @param {string} token The token to parse.
    */
   push(token) {
-    debug('push:', token);
+    // debug('push:', token);
     let surroundedBy = '';
 
     /** @type {null | true | false | number | string}  */
@@ -123,7 +122,7 @@ class Tokenizer {
    * @returns {null | true | false | number | string} The converted token.
    */
   convertToken(token) {
-    debug('convertToken:', token);
+    // debug('convertToken:', token);
     const lowerToken = token.toLowerCase();
     if (lowerToken === 'null') {
       return null;
@@ -142,10 +141,10 @@ class Tokenizer {
    * Process the string.
    */
   tokenize() {
-    debug('tokenize');
+    // debug('tokenize');
     [...this.str].forEach((character) => this.consume(character));
     while (this.getCurrentMode() !== MODE_NONE) {
-      debug(`tokenize: ${this.currentToken}`);
+      // debug(`tokenize: ${this.currentToken}`);
       this.completeCurrentMode();
     }
   }
@@ -155,7 +154,7 @@ class Tokenizer {
    * @param {string} character - The character to process.
    */
   consume(character) {
-    debug(`consume: "${character}"`);
+    // debug(`consume: "${character}"`);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     this[this.getCurrentMode()](character);
     this.previousCharacter = character;
@@ -166,7 +165,7 @@ class Tokenizer {
    * @param {string} character - The character to consider.
    */
   [MODE_NONE](character) {
-    debug(`[${MODE_NONE}]: "${character}"`);
+    // debug(`[${MODE_NONE}]: "${character}"`);
     if (!this.factory.matchMap.has(character)) {
       this.setCurrentMode(MODE_DEFAULT);
       this.consume(character);
@@ -183,7 +182,7 @@ class Tokenizer {
    * @returns {string | undefined} The current token.
    */
   [MODE_DEFAULT](character) {
-    debug(`[${MODE_DEFAULT}]: "${character}"`);
+    // debug(`[${MODE_DEFAULT}]: "${character}"`);
     // If we encounter a delimiter, its time to push out the current token.
     if (this.factory.delimiterMap.has(character)) {
       return this.completeCurrentMode();
@@ -212,7 +211,7 @@ class Tokenizer {
    * Parse out potential tokenizable substrings out of the current token.
    */
   pushDefaultModeTokenizables() {
-    debug('pushDefaultModeTokenizables');
+    // debug('pushDefaultModeTokenizables');
     let tokenizeIndex = 0;
     let lowestIndexOfTokenize = Infinity;
     let toTokenize = null;
@@ -255,7 +254,7 @@ class Tokenizer {
    * @returns {string | undefined} - The current token.
    */
   [MODE_MATCH](character) {
-    debug(`[${MODE_MATCH}]: "${character}"`);
+    // debug(`[${MODE_MATCH}]: "${character}"`);
     if (character === this.toMatch) {
       if (this.previousCharacter !== this.factory.config.escapeCharacter) {
         return this.completeCurrentMode();

@@ -129,11 +129,10 @@ const validateQuery = (query) => {
     throw new Error(error);
   }
 
-  const output = {
+  // debug('validateQuery output:', { fields, table, where, order, limit });
+  return {
     fields, table, where, order, limit,
   };
-  debug('validateQuery output:', output);
-  return output;
 };
 
 export default validateQuery;

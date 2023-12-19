@@ -1,7 +1,7 @@
 <a name="Plugin"></a>
 
 ## Plugin
-<p>Uttori Storage Provider - JSON File</p>
+Uttori Storage Provider - JSON File
 
 **Kind**: global class  
 
@@ -13,11 +13,11 @@
 <a name="Plugin.configKey"></a>
 
 ### Plugin.configKey ⇒ <code>string</code>
-<p>The configuration key for plugin to look for in the provided configuration.
-In this case the key is <code>uttori-plugin-storage-provider-json-file</code>.</p>
+The configuration key for plugin to look for in the provided configuration.
+In this case the key is `uttori-plugin-storage-provider-json-file`.
 
 **Kind**: static property of [<code>Plugin</code>](#Plugin)  
-**Returns**: <code>string</code> - <p>The configuration key.</p>  
+**Returns**: <code>string</code> - The configuration key.  
 **Example** *(Plugin.configKey)*  
 ```js
 const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
@@ -25,10 +25,10 @@ const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] 
 <a name="Plugin.defaultConfig"></a>
 
 ### Plugin.defaultConfig() ⇒ <code>StorageProviderConfig</code>
-<p>The default configuration.</p>
+The default configuration.
 
 **Kind**: static method of [<code>Plugin</code>](#Plugin)  
-**Returns**: <code>StorageProviderConfig</code> - <p>The configuration.</p>  
+**Returns**: <code>StorageProviderConfig</code> - The configuration.  
 **Example** *(Plugin.defaultConfig())*  
 ```js
 const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
@@ -36,16 +36,16 @@ const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] 
 <a name="Plugin.register"></a>
 
 ### Plugin.register(context)
-<p>Register the plugin with a provided set of events on a provided Hook system.</p>
+Register the plugin with a provided set of events on a provided Hook system.
 
 **Kind**: static method of [<code>Plugin</code>](#Plugin)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| context | <code>object</code> | <p>A Uttori-like context.</p> |
-| context.hooks | <code>object</code> | <p>An event system / hook system to use.</p> |
-| context.hooks.on | <code>function</code> | <p>An event registration function.</p> |
-| context.config | <code>Record.&lt;string, StorageProviderConfig&gt;</code> | <p>A provided configuration to use.</p> |
+| context | <code>object</code> | A Uttori-like context. |
+| context.hooks | <code>object</code> | An event system / hook system to use. |
+| context.hooks.on | <code>function</code> | An event registration function. |
+| context.config | <code>Record.&lt;string, StorageProviderConfig&gt;</code> | A provided configuration to use. |
 
 **Example** *(Plugin.register(context))*  
 ```js

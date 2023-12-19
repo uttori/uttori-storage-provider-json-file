@@ -140,7 +140,7 @@ class SqlWhereParser {
       tokenCount++;
 
       // Read a token.
-      debug(`token: "${token}", surroundedBy: "${surroundedBy}"`);
+      // debug(`token: "${token}", surroundedBy: "${surroundedBy}"`);
       if (typeof token === 'string' && !surroundedBy) {
         /** @type {string | symbol} */
         let normalizedToken = token.toUpperCase();

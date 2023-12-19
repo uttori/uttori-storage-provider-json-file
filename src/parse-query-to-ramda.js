@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 
-let debug = (..._) => {};
+// let debug = (..._) => {};
 /* c8 ignore next 2 */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-try { const { default: d } = await import('debug'); debug = d('Uttori.parseQueryToRamda'); } catch {}
+// try { const { default: d } = await import('debug'); debug = d('Uttori.parseQueryToRamda'); } catch {}
 
 /**
  * Checks if a value is between two bounds.
@@ -39,7 +39,7 @@ const isIn = (list, value) => {
  * ➜ [{ ... }, { ... }, ...]
  */
 const parseQueryToRamda = (ast) => {
-  debug('AST:', JSON.stringify(ast, null, 2));
+  // debug('AST:', JSON.stringify(ast, null, 2));
   const operations = Object.keys(ast).map((key) => {
     /** @type {import('../dist/custom.d.ts').Value} */
     const operands = ast[key];
