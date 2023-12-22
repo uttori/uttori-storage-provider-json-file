@@ -1,6 +1,6 @@
 import test from 'ava';
 import SqlWhereParser from '../src/where-parser.js';
-import parseQueryToRamda from '../src/parse-query-to-ramda.js';
+import parseQueryToFilterFunctions from '../src/parse-query-filter-functions.js';
 
 const docs = [
   {
@@ -43,7 +43,7 @@ const docs = [
 const filter = (query) => {
   const parser = new SqlWhereParser();
   const ast = parser.parse(query);
-  const filters = parseQueryToRamda(ast);
+  const filters = parseQueryToFilterFunctions(ast);
   return [...docs].filter(filters);
 };
 
@@ -232,7 +232,7 @@ test('Level 0: Missing Key', (t) => {
         ]
       ]
     };
-    parseQueryToRamda(ast);
+    parseQueryToFilterFunctions(ast);
   });
 });
 

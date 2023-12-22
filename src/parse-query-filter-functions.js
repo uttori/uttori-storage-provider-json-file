@@ -4,7 +4,7 @@
 // let debug = (..._) => {};
 /* c8 ignore next 2 */
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-// try { const { default: d } = await import('debug'); debug = d('Uttori.parseQueryToRamda'); } catch {}
+// try { const { default: d } = await import('debug'); debug = d('Uttori.parseQueryToFilterFunctions'); } catch {}
 
 /**
  * Checks if a value is between two bounds.
@@ -31,23 +31,24 @@ const isIn = (list, value) => {
 /**
  * Using default SQL tree output, iterate over that to convert to items to be checked group by group (AND, OR), prop by prop to filter functions.
  * Both `+` and `-` should be done in a pre-parser step or before the query is constructed, or after results are returned.
- * @param {import('../dist/custom.d.ts').SqlWhereParserAst} ast The parsed output of SqlWhereParser to be filtered.
- * @returns {Array} The collected set of Ramda filter functions.
- * @example <caption>parseQueryToRamda(ast)</caption>
- * const filters = parseQueryToRamda(ast);
- * return R.filter(filters)(docs);
+ * @param {import('../dist/custom').SqlWhereParserAst} ast The parsed output of SqlWhereParser to be filtered.
+ * @returns {(item: any) => boolean} The top level filter function.
+ * @example <caption>parseQueryToFilterFunctions(ast)</caption>
+ * const whereFunctions = parseQueryToFilterFunctions(ast);
+ * return objects.filter(whereFunctions);
  * ➜ [{ ... }, { ... }, ...]
  */
-const parseQueryToRamda = (ast) => {
+const parseQueryToFilterFunctions = (ast) => {
   // debug('AST:', JSON.stringify(ast, null, 2));
+  /** @type {((item: any) => boolean)[]} */
   const operations = Object.keys(ast).map((key) => {
-    /** @type {import('../dist/custom.d.ts').Value} */
+    /** @type {import('../dist/custom').Value} */
     const operands = ast[key];
     switch (key) {
       case 'AND':
-        return (item) => ast[key]?.every((subQuery) => parseQueryToRamda(subQuery)(item));
+        return (item) => ast[key]?.every((subQuery) => parseQueryToFilterFunctions(subQuery)(item));
       case 'OR':
-        return (item) => ast[key]?.some((subQuery) => parseQueryToRamda(subQuery)(item));
+        return (item) => ast[key]?.some((subQuery) => parseQueryToFilterFunctions(subQuery)(item));
       case 'BETWEEN':
         return (item) => isBetween(item[operands[0]], operands[1], operands[2]);
       case 'IN':
@@ -109,6 +110,7 @@ const parseQueryToRamda = (ast) => {
           return item[operands[0]] !== operands[1];
         };
       default:
+        // eslint-disable-next-line no-console
         console.error('Uncaught key:', key);
         return () => true;
     }
@@ -117,4 +119,4 @@ const parseQueryToRamda = (ast) => {
   return (item) => operations.every((op) => op(item));
 };
 
-export default parseQueryToRamda;
+export default parseQueryToFilterFunctions;

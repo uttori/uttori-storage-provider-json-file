@@ -10,7 +10,7 @@ try { const { default: d } = await import('debug'); debug = d('Uttori.StoragePro
 
 /**
  * @typedef UttoriDocument The document object we store, with only the minimum methods we access listed.
- * @property {string} slug The unique identifier for the document.
+ * @property {string} [slug] The unique identifier for the document.
  * @property {number|Date} [createDate] The creation date of the document.
  * @property {number|Date} [updateDate] The last date the document was updated.
  */

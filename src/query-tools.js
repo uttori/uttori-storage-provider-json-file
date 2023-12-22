@@ -1,4 +1,4 @@
-import parseQueryToRamda from './parse-query-to-ramda.js';
+import parseQueryToFilterFunctions from './parse-query-filter-functions.js';
 import validateQuery from './validate-query.js';
 import fyShuffle from './fisher-yates-shuffle.js';
 
@@ -26,8 +26,7 @@ const processQuery = (query, objects) => {
   debug('Found where:', where);
   debug('Found order:', order);
   debug('Found limit:', limit);
-  /** @type {Function[]} */
-  const whereFunctions = parseQueryToRamda(where);
+  const whereFunctions = parseQueryToFilterFunctions(where);
   /** @type {import('./storage-provider.js').UttoriDocument[]} */
   const filtered = objects.filter(whereFunctions);
 
@@ -59,6 +58,7 @@ const processQuery = (query, objects) => {
   // Select
   if (!fields.includes('*')) {
     output = output.map((item) => {
+      /** @type {import('./storage-provider.js').UttoriDocument} */
       const newItem = {};
       fields.forEach((field) => {
         if (Object.hasOwn(item, field)) {

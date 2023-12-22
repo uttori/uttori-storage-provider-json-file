@@ -20,12 +20,13 @@ All notable changes to this project will be documented in this file. This projec
 - 🎁 Update dev dependencies
 - 🛠 Update ESLint configuration
 - 🛠 Update NVM to v20.10.0
-- 🛠 Update old tooling confugration files
-- 🛠 Remove CJS support, restucture to export ESM only
+- 🛠 Update old tooling configuration files
+- 🛠 Remove CJS support, restructure to export ESM only
 - 🛠 Make `.all()` an `async` function
 - 🛠 Refactor `fs` method use to be `async`` and more efficient
 - 🧰 Add `StorageProvider.ensureDirectory` static method to ensure directories are created before writing files
 - 🧰 Add support for `EXCLUDES` as the opposite of `INCLUDES` for `SELECT` queries
+- 🛠 Migrate all Ramda functions to native JavaScript
 
 ## [4.2.1](https://github.com/uttori/uttori-storage-provider-json-file/compare/v4.2.0...v4.2.1) - 2022-12-22
 

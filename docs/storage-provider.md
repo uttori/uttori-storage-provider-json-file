@@ -208,7 +208,7 @@ Ensure a directory exists, and if not create it.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| slug | <code>string</code> | The unique identifier for the document. |
+| [slug] | <code>string</code> | The unique identifier for the document. |
 | [createDate] | <code>number</code> \| <code>Date</code> | The creation date of the document. |
 | [updateDate] | <code>number</code> \| <code>Date</code> | The last date the document was updated. |
 

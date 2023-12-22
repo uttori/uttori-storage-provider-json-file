@@ -32,7 +32,7 @@ class SqlWhereParser {
  * @class
  */
   constructor(config) {
-    debug('constructor:', config);
+    debug('constructor:', config ?? {});
     config = {
       operators: [
         {
@@ -310,8 +310,9 @@ class SqlWhereParser {
    * @param {string|symbol} operatorValue2 - Second operator.
    * @returns {boolean} That operatorValue2 precedence is less than or equal to the precedence of operatorValue1.
    */
+  // eslint-disable-next-line arrow-body-style
   operatorPrecedenceFromValues = (operatorValue1, operatorValue2) => {
-    debug('operatorPrecedenceFromValues:', operatorValue1, operatorValue2);
+    // debug('operatorPrecedenceFromValues:', operatorValue1, operatorValue2);
     return this.operators[operatorValue2].precedence <= this.operators[operatorValue1].precedence;
   };
 
@@ -321,7 +322,7 @@ class SqlWhereParser {
    * @returns {*} The operator from the list of operators.
    */
   getOperator = (operatorValue) => {
-    debug('getOperator:', operatorValue);
+    // debug('getOperator:', operatorValue);
     if (typeof operatorValue === 'string') {
       return this.operators[operatorValue.toUpperCase()];
     }
@@ -338,7 +339,7 @@ class SqlWhereParser {
    * @returns {Array<string | number | import('../dist/custom.js').SqlWhereParserAst>|import('../dist/custom.js').SqlWhereParserAst} Either comma seperated values concated, or an object with the key of the operator and operands as the value.
    */
   static defaultEvaluator = (operatorValue, operands) => {
-    debug('defaultEvaluator:', operatorValue);
+    // debug('defaultEvaluator:', operatorValue);
     // Convert back to regular minus, now that we have the proper number of operands.
     if (operatorValue === Operator.type('unary-minus')) {
       operatorValue = '-';
@@ -350,7 +351,8 @@ class SqlWhereParser {
     if (operatorValue === ',') {
       /** @type {Array<string | number | import('../dist/custom.js').SqlWhereParserAst>} */
       const output = operands.flatMap((op) => (Array.isArray(op) ? op : [op]));
-      debug('defaultEvaluator: Comma Detected!', output);
+      debug('defaultEvaluator: Comma Detected!', JSON.stringify(output));
+      debug('defaultEvaluator: Converted:', output);
       return output;
     }
 
