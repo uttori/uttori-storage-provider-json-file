@@ -1,14 +1,17 @@
-/** @type {Function} */
-let debug = () => {}; try { debug = require('debug')('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
-const R = require('ramda');
-const { parseQueryToRamda, validateQuery, fyShuffle } = require('uttori-utilities');
+import parseQueryToFilterFunctions from './parse-query-filter-functions.js';
+import validateQuery from './validate-query.js';
+import fyShuffle from './fisher-yates-shuffle.js';
+
+let debug = (..._) => {};
+/* c8 ignore next 2 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+try { const { default: d } = await import('debug'); debug = d('Uttori.StorageProvider.JSON.QueryTools'); } catch {}
 
 /**
  * Processes a query string.
- *
  * @param {string} query - The SQL-like query to parse.
- * @param {object[]} objects - An array of object to search within.
- * @returns {object[]|number} Returns an array of all matched documents, or a count.
+ * @param {import('./storage-provider.js').UttoriDocument[]} objects - An array of object to search within.
+ * @returns {import('./storage-provider.js').UttoriDocument[]|number} Returns an array of all matched documents, or a count.
  * @example
  * ```js
  * processQuery('SELECT name FROM table WHERE age > 1 ORDER BY RANDOM LIMIT 3', [{ ... }, ...]);
@@ -23,8 +26,9 @@ const processQuery = (query, objects) => {
   debug('Found where:', where);
   debug('Found order:', order);
   debug('Found limit:', limit);
-  const whereFunctions = parseQueryToRamda(where);
-  const filtered = R.filter(whereFunctions)(objects);
+  const whereFunctions = parseQueryToFilterFunctions(where);
+  /** @type {import('./storage-provider.js').UttoriDocument[]} */
+  const filtered = objects.filter(whereFunctions);
 
   // Short circuit when we only want the counts.
   if (fields.includes('COUNT(*)')) {
@@ -36,27 +40,36 @@ const processQuery = (query, objects) => {
   if (order[0].prop === 'RANDOM') {
     output = fyShuffle(filtered);
   } else {
-    output = R.sortWith(
-      order.map((value) => {
-        const sorter = value.sort === 'ASC' ? R.ascend : R.descend;
-        return sorter(R.prop(value.prop));
-      }),
-    )(filtered);
+    output = filtered.sort((a, b) => {
+      for (const value of order) {
+        const direction = value.sort === 'ASC' ? 1 : -1;
+        if (a[value.prop] < b[value.prop]) return -1 * direction;
+        if (a[value.prop] > b[value.prop]) return 1 * direction;
+      }
+      return 0;
+    });
   }
 
   // Limit
   if (limit > 0) {
-    output = R.take(limit, output);
+    output = output.slice(0, limit);
   }
 
   // Select
   if (!fields.includes('*')) {
-    output = R.lift(R.pickAll(fields))(output);
+    output = output.map((item) => {
+      /** @type {import('./storage-provider.js').UttoriDocument} */
+      const newItem = {};
+      fields.forEach((field) => {
+        if (Object.hasOwn(item, field)) {
+          newItem[field] = item[field];
+        }
+      });
+      return newItem;
+    });
   }
 
   return output;
 };
 
-module.exports = {
-  processQuery,
-};
+export default processQuery;

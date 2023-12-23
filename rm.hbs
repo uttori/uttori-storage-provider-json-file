@@ -19,13 +19,13 @@ npm install --save @uttori/storage-provider-json-file
 
 ```js
 {
-  content_directory: '',
-  history_directory: '',
+  contentDirectory: '',
+  historyDirectory: '',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
-  update_timestamps: true,
-  use_history: true,
+  spacesDocument: null,
+  spacesHistory: null,
+  updateTimestamps: true,
+  useHistory: true,
   // Registration Events
   events: {
     add: ['storage-add'],
@@ -47,19 +47,16 @@ npm install --save @uttori/storage-provider-json-file
 ```js
 // When part of UttoriWiki:
 import { Plugin as StorageProviderJSON } from '@uttori/storage-provider-json-file';
-// or
-const { Plugin: StorageProviderJSON } = require('@uttori/storage-provider-json-file');
 
 // When stand alone:
 import StorageProvider from '@uttori/storage-provider-json-file';
-// or
-const { StorageProvider } = require('@uttori/storage-provider-json-file');
+
 const s = new StorageProvider({
-  content_directory: 'example/content',
-  history_directory: 'example/history',
+  contentDirectory: 'example/content',
+  historyDirectory: 'example/history',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
+  spacesDocument: null,
+  spacesHistory: null,
 });
 await s.add({
   title: 'Example Title',
@@ -79,7 +76,7 @@ const results = await s.getQuery('SELECT tags FROM documents WHERE slug IS_NOT_N
 ➜  results === [
       { tags: ['Example Tag'] },
     ]
-const results = s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
+const results = await s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
 ➜  results === 1
 ```
 
@@ -93,7 +90,7 @@ const results = s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NUL
 
 To run the test suite, first install the dependencies, then run `npm test`:
 
-```bash
+```sh
 npm install
 npm test
 DEBUG=Uttori* npm test

@@ -2,24 +2,30 @@
   "extends": [
     "airbnb",
     "plugin:ava/recommended",
+    "plugin:import/recommended",
     "plugin:jsdoc/recommended",
-    "plugin:node/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:n/recommended",
     "plugin:optimize-regex/all",
-    "plugin:ramda/recommended",
-    "plugin:security/recommended"
+    "plugin:security/recommended-legacy",
+    "plugin:sonarjs/recommended",
+    "plugin:@typescript-eslint/recommended-type-checked"
   ],
   "plugins": [
+    "@typescript-eslint",
     "anti-trojan-source",
     "ava",
+    "import",
     "jsdoc",
-    "node",
+    "jsx-a11y",
+    "no-inferred-method-name",
+    "n",
     "optimize-regex",
-    "ramda",
     "security",
+    "sonarjs",
     "xss"
   ],
   "env": {
-    "es6": true,
     "browser": true,
     "node": true
   },
@@ -30,14 +36,21 @@
     "JSX": true
   },
   "parserOptions": {
-    "sourceType": "module",
-    "ecmaVersion": 2021,
-    "ecmaFeatures": {
-      "jsx": true
-    },
-    "requireConfigFile": false
+    "ecmaVersion": "latest",
+    "requireConfigFile": false,
+    "project": ["./.tsconfig.json"]
   },
+  "ignorePatterns": [
+    "temp.js",
+    "dist/*.ts",
+    "test/*.js"
+  ],
   "rules": {
+    "@typescript-eslint/no-unsafe-argument": "warn",
+    "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unsafe-member-access": "warn",
+    "@typescript-eslint/no-unsafe-return": "warn",
     "anti-trojan-source/no-bidi": "error",
     "import/no-extraneous-dependencies": [
       "error", {
@@ -51,6 +64,7 @@
     "class-methods-use-this": 0,
     "consistent-return": ["warn", { "treatUndefinedAsUnspecified": false }],
     "global-require": 0,
+    "import/extensions": ["warn", "ignorePackages"],
     "import/no-dynamic-require": 0,
     "import/no-unresolved": 0,
     "max-classes-per-file": 0,
@@ -76,18 +90,23 @@
       }
     ],
     "no-underscore-dangle": 0,
-    "no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
-    "node/no-missing-require": 0,
-    "node/no-unpublished-require": 0,
+    "no-unused-vars": 0,
+    "@typescript-eslint/no-unused-vars": ["error", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_", "caughtErrors": "none" }],
     "object-curly-newline": 0,
     "optimize-regex/optimize-regex": "warn",
     "security/detect-non-literal-fs-filename": 0,
     "security/detect-non-literal-require": 0,
-    "security/detect-object-injection": 0
+    "security/detect-object-injection": 0,
+    "security/detect-possible-timing-attacks": 0,
+    "sonarjs/cognitive-complexity": 0,
+    "sonarjs/no-duplicate-string": 0
   },
   "settings": {
     "jsdoc": {
       "mode": "typescript"
+    },
+    "react": {
+      "version": "detect"
     }
   }
 }

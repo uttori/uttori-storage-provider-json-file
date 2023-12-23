@@ -19,13 +19,13 @@ npm install --save @uttori/storage-provider-json-file
 
 ```js
 {
-  content_directory: '',
-  history_directory: '',
+  contentDirectory: '',
+  historyDirectory: '',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
-  update_timestamps: true,
-  use_history: true,
+  spacesDocument: null,
+  spacesHistory: null,
+  updateTimestamps: true,
+  useHistory: true,
   // Registration Events
   events: {
     add: ['storage-add'],
@@ -47,19 +47,16 @@ npm install --save @uttori/storage-provider-json-file
 ```js
 // When part of UttoriWiki:
 import { Plugin as StorageProviderJSON } from '@uttori/storage-provider-json-file';
-// or
-const { Plugin: StorageProviderJSON } = require('@uttori/storage-provider-json-file');
 
 // When stand alone:
 import StorageProvider from '@uttori/storage-provider-json-file';
-// or
-const { StorageProvider } = require('@uttori/storage-provider-json-file');
+
 const s = new StorageProvider({
-  content_directory: 'example/content',
-  history_directory: 'example/history',
+  contentDirectory: 'example/content',
+  historyDirectory: 'example/history',
   extension: 'json',
-  spaces_document: null,
-  spaces_history: null,
+  spacesDocument: null,
+  spacesHistory: null,
 });
 await s.add({
   title: 'Example Title',
@@ -79,7 +76,7 @@ const results = await s.getQuery('SELECT tags FROM documents WHERE slug IS_NOT_N
 ➜  results === [
       { tags: ['Example Tag'] },
     ]
-const results = s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
+const results = await s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NULL ORDER BY RANDOM ASC LIMIT -1');
 ➜  results === 1
 ```
 
@@ -93,17 +90,12 @@ const results = s.getQuery('SELECT COUNT(*) FROM documents WHERE slug IS_NOT_NUL
 </dd>
 </dl>
 
-## Functions
-
-<dl>
-<dt><a href="#debug">debug()</a> : <code>function</code></dt>
-<dd></dd>
-</dl>
-
 ## Typedefs
 
 <dl>
 <dt><a href="#UttoriDocument">UttoriDocument</a></dt>
+<dd></dd>
+<dt><a href="#StorageProviderConfig">StorageProviderConfig</a></dt>
 <dd></dd>
 </dl>
 
@@ -115,29 +107,28 @@ Storage for Uttori documents using JSON files stored on the local file system.
 **Kind**: global class  
 **Properties**
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| config | <code>object</code> |  | The configuration object. |
-| config.content_directory | <code>string</code> |  | The directory to store documents. |
-| config.history_directory | <code>string</code> |  | The directory to store document histories. |
-| [config.extension] | <code>string</code> | <code>&quot;&#x27;json&#x27;&quot;</code> | The file extension to use for file, name of the employee. |
-| [config.spaces_document] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
-| [config.spaces_history] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
-| documents | <code>object</code> |  | The collection of documents where the slug is the key and the value is the document. |
+| Name | Type | Description |
+| --- | --- | --- |
+| config | [<code>StorageProviderConfig</code>](#StorageProviderConfig) | The configuration object. |
+| documents | <code>Record.&lt;string, UttoriDocument&gt;</code> | The collection of documents where the slug is the key and the value is the document. |
 
 
 * [StorageProvider](#StorageProvider)
     * [new StorageProvider(config)](#new_StorageProvider_new)
-    * [.all()](#StorageProvider+all) ⇒ <code>object</code>
-    * [.getQuery(query)](#StorageProvider+getQuery) ⇒ <code>Promise.&lt;(Array.&lt;UttoriDocument&gt;\|number)&gt;</code>
-    * [.get(slug)](#StorageProvider+get) ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
-    * [.add(document)](#StorageProvider+add)
-    * [.updateValid(document, originalSlug)](#StorageProvider+updateValid) ℗
-    * [.update(params)](#StorageProvider+update)
-    * [.delete(slug)](#StorageProvider+delete)
-    * [.getHistory(slug)](#StorageProvider+getHistory) ⇒ <code>Promise.&lt;Array.&lt;string&gt;&gt;</code>
-    * [.getRevision(params)](#StorageProvider+getRevision) ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
-    * [.updateHistory(slug, content, [originalSlug])](#StorageProvider+updateHistory)
+    * _instance_
+        * [.documents](#StorageProvider+documents) : <code>Record.&lt;string, UttoriDocument&gt;</code>
+        * [.all](#StorageProvider+all) ⇒ <code>Promise.&lt;Record.&lt;string, UttoriDocument&gt;&gt;</code>
+        * [.getQuery](#StorageProvider+getQuery) ⇒ <code>Promise.&lt;(Array.&lt;UttoriDocument&gt;\|number)&gt;</code>
+        * [.get](#StorageProvider+get) ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
+        * [.add](#StorageProvider+add)
+        * [.updateValid](#StorageProvider+updateValid) ℗
+        * [.update](#StorageProvider+update)
+        * [.delete](#StorageProvider+delete)
+        * [.getHistory](#StorageProvider+getHistory) ⇒ <code>Promise.&lt;Array.&lt;string&gt;&gt;</code>
+        * [.getRevision](#StorageProvider+getRevision) ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
+        * [.updateHistory](#StorageProvider+updateHistory)
+    * _static_
+        * [.ensureDirectory(directory)](#StorageProvider.ensureDirectory)
 
 <a name="new_StorageProvider_new"></a>
 
@@ -145,29 +136,27 @@ Storage for Uttori documents using JSON files stored on the local file system.
 Creates an instance of StorageProvider.
 
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| config | <code>object</code> |  | A configuration object. |
-| config.content_directory | <code>string</code> |  | The directory to store documents. |
-| config.history_directory | <code>string</code> |  | The directory to store document histories. |
-| [config.extension] | <code>string</code> | <code>&quot;json&quot;</code> | The file extension to use for file, name of the employee. |
-| [config.update_timestamps] | <code>boolean</code> | <code>true</code> | Should update times be marked at the time of edit. |
-| [config.use_history] | <code>boolean</code> | <code>true</code> | Should history entries be created. |
-| [config.use_cache] | <code>boolean</code> | <code>true</code> | Should we cache files in memory? |
-| [config.spaces_document] | <code>number</code> |  | The spaces parameter for JSON stringifying documents. |
-| [config.spaces_history] | <code>number</code> |  | The spaces parameter for JSON stringifying history. |
+| Param | Type | Description |
+| --- | --- | --- |
+| config | [<code>StorageProviderConfig</code>](#StorageProviderConfig) | A configuration object. |
 
 **Example** *(Init StorageProvider)*  
 ```js
-const storageProvider = new StorageProvider({ content_directory: 'content', history_directory: 'history', spaces_document: 2 });
+const storageProvider = new StorageProvider({ contentDirectory: 'content', historyDirectory: 'history', spacesDocument: 2 });
 ```
+<a name="StorageProvider+documents"></a>
+
+### storageProvider.documents : <code>Record.&lt;string, UttoriDocument&gt;</code>
+The collection of documents where the slug is the key and the value is the document.
+
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 <a name="StorageProvider+all"></a>
 
-### storageProvider.all() ⇒ <code>object</code>
+### storageProvider.all ⇒ <code>Promise.&lt;Record.&lt;string, UttoriDocument&gt;&gt;</code>
 Returns all documents.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
-**Returns**: <code>object</code> - All documents.  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
+**Returns**: <code>Promise.&lt;Record.&lt;string, UttoriDocument&gt;&gt;</code> - All documents.  
 **Example**  
 ```js
 storageProvider.all();
@@ -175,10 +164,10 @@ storageProvider.all();
 ```
 <a name="StorageProvider+getQuery"></a>
 
-### storageProvider.getQuery(query) ⇒ <code>Promise.&lt;(Array.&lt;UttoriDocument&gt;\|number)&gt;</code>
+### storageProvider.getQuery ⇒ <code>Promise.&lt;(Array.&lt;UttoriDocument&gt;\|number)&gt;</code>
 Returns all documents matching a given query.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 **Returns**: <code>Promise.&lt;(Array.&lt;UttoriDocument&gt;\|number)&gt;</code> - Promise object represents all matching documents.  
 
 | Param | Type | Description |
@@ -187,10 +176,10 @@ Returns all documents matching a given query.
 
 <a name="StorageProvider+get"></a>
 
-### storageProvider.get(slug) ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
+### storageProvider.get ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
 Returns a document for a given slug.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 **Returns**: <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code> - Promise object represents the returned UttoriDocument.  
 
 | Param | Type | Description |
@@ -199,10 +188,10 @@ Returns a document for a given slug.
 
 <a name="StorageProvider+add"></a>
 
-### storageProvider.add(document)
+### storageProvider.add
 Saves a document to the file system.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -210,10 +199,10 @@ Saves a document to the file system.
 
 <a name="StorageProvider+updateValid"></a>
 
-### storageProvider.updateValid(document, originalSlug) ℗
+### storageProvider.updateValid ℗
 Updates a document and saves to the file system.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 **Access**: private  
 
 | Param | Type | Description |
@@ -223,10 +212,10 @@ Updates a document and saves to the file system.
 
 <a name="StorageProvider+update"></a>
 
-### storageProvider.update(params)
+### storageProvider.update
 Updates a document and figures out how to save to the file system.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -236,10 +225,10 @@ Updates a document and figures out how to save to the file system.
 
 <a name="StorageProvider+delete"></a>
 
-### storageProvider.delete(slug)
+### storageProvider.delete
 Removes a document from the file system.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -247,10 +236,10 @@ Removes a document from the file system.
 
 <a name="StorageProvider+getHistory"></a>
 
-### storageProvider.getHistory(slug) ⇒ <code>Promise.&lt;Array.&lt;string&gt;&gt;</code>
+### storageProvider.getHistory ⇒ <code>Promise.&lt;Array.&lt;string&gt;&gt;</code>
 Returns the history of edits for a given slug.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 **Returns**: <code>Promise.&lt;Array.&lt;string&gt;&gt;</code> - Promise object represents the returned history.  
 
 | Param | Type | Description |
@@ -259,10 +248,10 @@ Returns the history of edits for a given slug.
 
 <a name="StorageProvider+getRevision"></a>
 
-### storageProvider.getRevision(params) ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
+### storageProvider.getRevision ⇒ <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code>
 Returns a specifc revision from the history of edits for a given slug and revision timestamp.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 **Returns**: <code>Promise.&lt;(UttoriDocument\|undefined)&gt;</code> - Promise object represents the returned revision of the document.  
 
 | Param | Type | Description |
@@ -273,10 +262,10 @@ Returns a specifc revision from the history of edits for a given slug and revisi
 
 <a name="StorageProvider+updateHistory"></a>
 
-### storageProvider.updateHistory(slug, content, [originalSlug])
+### storageProvider.updateHistory
 Updates History for a given slug, renaming the store file and history directory as needed.
 
-**Kind**: instance method of [<code>StorageProvider</code>](#StorageProvider)  
+**Kind**: instance property of [<code>StorageProvider</code>](#StorageProvider)  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -284,10 +273,17 @@ Updates History for a given slug, renaming the store file and history directory 
 | content | <code>string</code> | The revision of the document to be saved. |
 | [originalSlug] | <code>string</code> | The original slug identifying the document, or the slug if it has not changed. |
 
-<a name="debug"></a>
+<a name="StorageProvider.ensureDirectory"></a>
 
-## debug() : <code>function</code>
-**Kind**: global function  
+### StorageProvider.ensureDirectory(directory)
+Ensure a directory exists, and if not create it.
+
+**Kind**: static method of [<code>StorageProvider</code>](#StorageProvider)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| directory | <code>string</code> | The directory to ensure exists. |
+
 <a name="UttoriDocument"></a>
 
 ## UttoriDocument
@@ -296,9 +292,27 @@ Updates History for a given slug, renaming the store file and history directory 
 
 | Name | Type | Description |
 | --- | --- | --- |
-| slug | <code>string</code> | The unique identifier for the document. |
+| [slug] | <code>string</code> | The unique identifier for the document. |
 | [createDate] | <code>number</code> \| <code>Date</code> | The creation date of the document. |
 | [updateDate] | <code>number</code> \| <code>Date</code> | The last date the document was updated. |
+
+<a name="StorageProviderConfig"></a>
+
+## StorageProviderConfig
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| contentDirectory | <code>string</code> | The directory to store documents. |
+| historyDirectory | <code>string</code> | The directory to store document histories. |
+| [extension] | <code>string</code> | The file extension to use for file. |
+| [updateTimestamps] | <code>boolean</code> | Should update times be marked at the time of edit. |
+| [useHistory] | <code>boolean</code> | Should history entries be created. |
+| [useCache] | <code>boolean</code> | Should we cache files in memory? |
+| [spacesDocument] | <code>number</code> | The spaces parameter for JSON stringifying documents. |
+| [spacesHistory] | <code>number</code> | The spaces parameter for JSON stringifying history. |
+| [events] | <code>Record.&lt;string, Array.&lt;string&gt;&gt;</code> | The events to listen for. |
 
 
 * * *
@@ -307,7 +321,7 @@ Updates History for a given slug, renaming the store file and history directory 
 
 To run the test suite, first install the dependencies, then run `npm test`:
 
-```bash
+```sh
 npm install
 npm test
 DEBUG=Uttori* npm test

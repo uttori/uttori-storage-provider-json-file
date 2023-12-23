@@ -1,10 +1,12 @@
-/** @type {Function} */
-let debug = () => {}; try { debug = require('debug')('Uttori.Plugin.StorageProvider.JSON'); } catch {}
-const StorageProvider = require('./storage-provider');
+import StorageProvider from './storage-provider.js';
+
+let debug = (..._) => {};
+/* c8 ignore next 2 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+try { const { default: d } = await import('debug'); debug = d('Uttori.Plugin.StorageProvider.JSON'); } catch {}
 
 /**
  * Uttori Storage Provider - JSON File
- *
  * @example <caption>Plugin</caption>
  * const storage = Plugin.callback(viewModel, context);
  * @class
@@ -12,7 +14,7 @@ const StorageProvider = require('./storage-provider');
 class Plugin {
   /**
    * The configuration key for plugin to look for in the provided configuration.
-   *
+   * In this case the key is `uttori-plugin-storage-provider-json-file`.
    * @type {string}
    * @returns {string} The configuration key.
    * @example <caption>Plugin.configKey</caption>
@@ -25,22 +27,21 @@ class Plugin {
 
   /**
    * The default configuration.
-   *
-   * @returns {object} The configuration.
+   * @returns {import('./storage-provider.js').StorageProviderConfig} The configuration.
    * @example <caption>Plugin.defaultConfig()</caption>
    * const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
    * @static
    */
   static defaultConfig() {
     return {
-      content_directory: '',
-      history_directory: '',
+      contentDirectory: '',
+      historyDirectory: '',
       extension: 'json',
-      update_timestamps: true,
-      use_history: true,
-      use_cache: true,
-      spaces_document: undefined,
-      spaces_history: undefined,
+      updateTimestamps: true,
+      useHistory: true,
+      useCache: true,
+      spacesDocument: undefined,
+      spacesHistory: undefined,
       events: {
         add: ['storage-add'],
         delete: ['storage-delete'],
@@ -56,12 +57,10 @@ class Plugin {
 
   /**
    * Register the plugin with a provided set of events on a provided Hook system.
-   *
    * @param {object} context - A Uttori-like context.
    * @param {object} context.hooks - An event system / hook system to use.
    * @param {Function} context.hooks.on - An event registration function.
-   * @param {object} context.config - A provided configuration to use.
-   * @param {object} context.config.events - An object whose keys correspong to methods, and contents are events to listen for.
+   * @param {Record<string, import('./storage-provider.js').StorageProviderConfig>} context.config - A provided configuration to use.
    * @example <caption>Plugin.register(context)</caption>
    * const context = {
    *   hooks: {
@@ -91,23 +90,23 @@ class Plugin {
     if (!context || !context.hooks || typeof context.hooks.on !== 'function') {
       throw new Error("Missing event dispatcher in 'context.hooks.on(event, callback)' format.");
     }
+    /** @type {import('./storage-provider.js').StorageProviderConfig} */
     const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
     if (!config.events) {
       throw new Error("Missing events to listen to for in 'config.events'.");
     }
 
     const storage = new StorageProvider(config);
-    const methods = Object.keys(config.events);
-    for (const method of methods) {
-      for (const event of config.events[method]) {
-        if (typeof storage[method] !== 'function') {
-          debug(`Missing function "${method}" for key "${event}"`);
-          return;
-        }
+    for (const [method, eventNames] of Object.entries(config.events)) {
+      if (typeof storage[method] !== 'function') {
+        debug(`Missing function "${method}"`);
+        continue;
+      }
+      for (const event of eventNames) {
         context.hooks.on(event, storage[method]);
       }
     }
   }
 }
 
-module.exports = Plugin;
+export default Plugin;

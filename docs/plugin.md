@@ -1,18 +1,3 @@
-## Classes
-
-<dl>
-<dt><a href="#Plugin">Plugin</a></dt>
-<dd><p>Uttori Storage Provider - JSON File</p>
-</dd>
-</dl>
-
-## Functions
-
-<dl>
-<dt><a href="#debug">debug()</a> : <code>function</code></dt>
-<dd></dd>
-</dl>
-
 <a name="Plugin"></a>
 
 ## Plugin
@@ -22,13 +7,14 @@ Uttori Storage Provider - JSON File
 
 * [Plugin](#Plugin)
     * [.configKey](#Plugin.configKey) ⇒ <code>string</code>
-    * [.defaultConfig()](#Plugin.defaultConfig) ⇒ <code>object</code>
+    * [.defaultConfig()](#Plugin.defaultConfig) ⇒ <code>StorageProviderConfig</code>
     * [.register(context)](#Plugin.register)
 
 <a name="Plugin.configKey"></a>
 
 ### Plugin.configKey ⇒ <code>string</code>
 The configuration key for plugin to look for in the provided configuration.
+In this case the key is `uttori-plugin-storage-provider-json-file`.
 
 **Kind**: static property of [<code>Plugin</code>](#Plugin)  
 **Returns**: <code>string</code> - The configuration key.  
@@ -38,11 +24,11 @@ const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] 
 ```
 <a name="Plugin.defaultConfig"></a>
 
-### Plugin.defaultConfig() ⇒ <code>object</code>
+### Plugin.defaultConfig() ⇒ <code>StorageProviderConfig</code>
 The default configuration.
 
 **Kind**: static method of [<code>Plugin</code>](#Plugin)  
-**Returns**: <code>object</code> - The configuration.  
+**Returns**: <code>StorageProviderConfig</code> - The configuration.  
 **Example** *(Plugin.defaultConfig())*  
 ```js
 const config = { ...Plugin.defaultConfig(), ...context.config[Plugin.configKey] };
@@ -59,8 +45,7 @@ Register the plugin with a provided set of events on a provided Hook system.
 | context | <code>object</code> | A Uttori-like context. |
 | context.hooks | <code>object</code> | An event system / hook system to use. |
 | context.hooks.on | <code>function</code> | An event registration function. |
-| context.config | <code>object</code> | A provided configuration to use. |
-| context.config.events | <code>object</code> | An object whose keys correspong to methods, and contents are events to listen for. |
+| context.config | <code>Record.&lt;string, StorageProviderConfig&gt;</code> | A provided configuration to use. |
 
 **Example** *(Plugin.register(context))*  
 ```js
@@ -86,7 +71,3 @@ const context = {
 };
 Plugin.register(context);
 ```
-<a name="debug"></a>
-
-## debug() : <code>function</code>
-**Kind**: global function  

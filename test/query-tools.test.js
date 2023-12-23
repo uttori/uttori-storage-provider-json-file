@@ -1,6 +1,5 @@
-// @ts-nocheck
-const test = require('ava');
-const { processQuery } = require('../src/query-tools');
+import test from 'ava';
+import processQuery from '../src/query-tools.js';
 
 const docs = [
   {

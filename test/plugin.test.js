@@ -1,27 +1,29 @@
-// @ts-nocheck
-const fs = require('fs-extra');
-const test = require('ava');
-const { EventDispatcher } = require('@uttori/event-dispatcher');
-const Plugin = require('../src/plugin');
+import fs from 'fs/promises';
+import test from 'ava';
+import { EventDispatcher } from '@uttori/event-dispatcher';
+import Plugin from '../src/plugin.js';
+import StorageProvider from '../src/storage-provider.js';
 
 const config = {
-  content_directory: 'test/site/content',
-  history_directory: 'test/site/content/history',
+  contentDirectory: 'test/site/content',
+  historyDirectory: 'test/site/content/history',
   extension: 'json',
-  update_timestamps: true,
-  use_history: true,
-  use_cache: true,
-  spaces_document: undefined,
-  spaces_history: undefined,
+  updateTimestamps: true,
+  useHistory: true,
+  useCache: true,
+  spacesDocument: undefined,
+  spacesHistory: undefined,
 };
 
 test.beforeEach(async () => {
-  await fs.remove('test/site');
-  await fs.ensureDir('test/site/content/history', { recursive: true });
+  await StorageProvider.ensureDirectory('test/site/content/history');
 });
 
 test.afterEach.always(async () => {
-  await fs.remove('test/site');
+  try {
+    await fs.rm('test/site', { recursive: true, force: true });
+  } catch (error) {
+  }
 });
 
 test('Plugin.configKey: returns a stable string', (t) => {
