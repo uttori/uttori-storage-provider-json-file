@@ -98,12 +98,12 @@ class Plugin {
 
     const storage = new StorageProvider(config);
     for (const [method, eventNames] of Object.entries(config.events)) {
-      if (typeof storage[method] !== 'function') {
+      if (typeof storage[method] === 'function') {
+        for (const event of eventNames) {
+          context.hooks.on(event, storage[method]);
+        }
+      } else {
         debug(`Missing function "${method}"`);
-        continue;
-      }
-      for (const event of eventNames) {
-        context.hooks.on(event, storage[method]);
       }
     }
   }

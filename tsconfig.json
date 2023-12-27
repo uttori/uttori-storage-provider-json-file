@@ -1,11 +1,13 @@
 {
   "include": [
-    "src/**/*",
-    "test/**/*"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
-    "test/**/*.test.js"
+    "test/**/*"
+  ],
+  "files": [
+    "dist/custom.d.ts"
   ],
   "compilerOptions": {
     "allowJs": true,
@@ -15,7 +17,10 @@
     "downlevelIteration": true,
     "emitDeclarationOnly": true,
     "extendedDiagnostics": true,
-    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "moduleResolution": "nodenext",
     "outDir": "dist",
     "noEmit": false,

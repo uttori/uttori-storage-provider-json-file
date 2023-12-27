@@ -101,7 +101,7 @@
   "scripts": {
     "docs": " jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js --template rm.hbs src/storage-provider.js > README.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/storage-provider.js > docs/storage-provider.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/plugin.js > docs/plugin.md; jsdoc2md --configure ./jsdoc.conf.json --private --example-lang js src/query-tools.js > docs/query-tools.md;",
     "lint": "eslint .",
-    "make-types": "tsc --checkJs false --module nodenext --project ./.tsconfig.json",
+    "make-types": "tsc --checkJs false --module nodenext --project ./tsconfig.json",
     "release": "release-it",
     "test": "NODE_ENV=test c8 ava --serial --concurrency=1",
     "test-debug": "DEBUG=Uttori* NODE_ENV=test ava --serial --concurrency=1",

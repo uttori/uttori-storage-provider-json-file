@@ -2,3 +2,6 @@
 coverage
 site/themes/*
 convert
+temp.js
+dist/*.ts
+test/*.js

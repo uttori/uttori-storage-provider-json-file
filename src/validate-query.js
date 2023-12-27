@@ -73,6 +73,7 @@ const validateQuery = (query) => {
     throw new Error(error);
   }
   const where_string = pieces[5].trim();
+  /** @type {import('../dist/custom.js').SqlWhereParserAst} */
   let where;
   try {
     const parser = new SqlWhereParser();
